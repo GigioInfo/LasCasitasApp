@@ -5,6 +5,7 @@ import bocadilloImg from './images/bocadillo.jpg';
 import chapataImg from './images/chapata.jpg';
 import zumoImg from './images/zumo.jpg';
 import tartaImg from './images/tarta.jpg';
+import Menu from './components/Menu';
 
 // Menú de ejemplo (luego lo podéis cambiar)
 const MENU_ITEMS = [
@@ -60,30 +61,8 @@ function App() {
 
       <main className="contenido">
         {pagina === 'menu' && (
-          <section>
-            <h2>Menú del día</h2>
-            <p>Selecciona los productos que quieres pedir.</p>
-            <div className="lista-menu">
-              {MENU_ITEMS.map((item) => (
-                <div key={item.id} className="tarjeta-menu">
-                  {item.imagen && (
-                    <img
-                      src={item.imagen}
-                      alt={item.nombre}
-                      className="imagen-menu"
-                    />
-                  )}
-                  <h3>{item.nombre}</h3>
-                  <p>{item.precio.toFixed(2)} €</p>
-                  <button onClick={() => añadirAlPedido(item)}>
-                    Añadir al pedido
-                  </button>
-                </div>
-              ))}
-            </div>
-          </section>
+          <Menu items={MENU_ITEMS} onAdd={añadirAlPedido} />
         )}
-
         {pagina === 'pedido' && (
           <section>
             <h2>Mi pedido</h2>
