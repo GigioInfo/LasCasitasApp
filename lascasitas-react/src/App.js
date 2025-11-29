@@ -6,6 +6,7 @@ import chapataImg from './images/chapata.jpg';
 import zumoImg from './images/zumo.jpg';
 import tartaImg from './images/tarta.jpg';
 import Menu from './components/Menu';
+import Footer from './components/Footer';
 
 // Menú de ejemplo (luego lo podéis cambiar)
 const MENU_ITEMS = [
@@ -104,6 +105,7 @@ function App() {
           </section>
         )}
       </main>
+      <Footer />
     </div>
   );
 }

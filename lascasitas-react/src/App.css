@@ -114,3 +114,12 @@
   border-radius: 10px;
   margin-bottom: 0.6rem;
 }
+
+.footer {
+  text-align: center;
+  padding: 1rem;
+  font-size: 0.85rem;
+  color: #555;
+  border-top: 1px solid #dde3f0;
+  margin-top: 1rem;
+}
