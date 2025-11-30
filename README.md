@@ -31,6 +31,36 @@ El prototipo puede probarse directamente aquí:
 
 **https://gigioinfo.github.io/LasCasitasApp/**
 
+## 📌 Integración con Supabase (Backend)
+
+Para almacenar datos reales del prototipo, se ha implementado un backend usando Supabase, que ofrece:
+- Base de datos PostgreSQL
+- API REST automática
+- Gestión de tablas y relaciones
+- Almacenamiento seguro en la nube
+
+Se han creado dos tablas:
+
+### 🧑‍🎓 Tabla `usuarios`
+
+| Campo      | Tipo        | Descripción                    |
+|------------|-------------|--------------------------------|
+| id         | bigint      | Identificador del usuario      |
+| nombre     | text        | Nombre del usuario             |
+| email      | text        | Correo electrónico             |
+| tipo       | text        | Rol del usuario (estudiante/profesor) |
+| creado_en  | timestamptz | Fecha de creación automática   |
+
+### 🧾 Tabla `pedidos`
+
+| Campo       | Tipo        | Descripción                                    |
+|-------------|-------------|------------------------------------------------|
+| id          | bigint      | Identificador del pedido                       |
+| usuario_id  | bigint      | Relación con usuarios.id (FK)                  |
+| total       | numeric     | Importe total del pedido                       |
+| estado      | text        | Estado del pedido (ej. en_preparacion)         |
+| contenido   | jsonb       | Lista de productos del pedido en formato JSON  |
+| creado_en   | timestamptz | Fecha de creación automática                   |
 ---
 
 ## 🖥️ Cómo ejecutar el prototipo en local (opcional)
