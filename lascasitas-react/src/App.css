@@ -27,7 +27,11 @@
   justify-content: center;
   gap: 1rem;
   padding: 1rem;
-  background: #e3ecff;
+  background: #e8efff;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  border-bottom: 1px solid #d2d9e6;
 }
 
 .nav-btn {
