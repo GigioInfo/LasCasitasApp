@@ -1,0 +1,18 @@
+{
+  "files": {
+    "main.css": "/LasCasitasApp/static/css/main.8691521c.css",
+    "main.js": "/LasCasitasApp/static/js/main.1de16d91.js",
+    "static/media/bocadillo.jpg": "/LasCasitasApp/static/media/bocadillo.f7d11dca08107fa3a4e8.jpg",
+    "static/media/zumo.jpg": "/LasCasitasApp/static/media/zumo.155aa8c4f0ed82acbdc8.jpg",
+    "static/media/cafe.jpg": "/LasCasitasApp/static/media/cafe.23ef1deb8b6cbf2a2d3b.jpg",
+    "static/media/chapata.jpg": "/LasCasitasApp/static/media/chapata.012ef9abb0659f37d168.jpg",
+    "static/media/tarta.jpg": "/LasCasitasApp/static/media/tarta.4895317dd5a40b15558d.jpg",
+    "index.html": "/LasCasitasApp/index.html",
+    "main.8691521c.css.map": "/LasCasitasApp/static/css/main.8691521c.css.map",
+    "main.1de16d91.js.map": "/LasCasitasApp/static/js/main.1de16d91.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.8691521c.css",
+    "static/js/main.1de16d91.js"
+  ]
+}

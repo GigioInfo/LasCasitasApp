@@ -1,6 +1,7 @@
 {
   "name": "lascasitas-react",
   "version": "0.1.0",
+  "homepage": "https://GigioInfo.github.io/LasCasitasApp",
   "private": true,
   "dependencies": {
     "@testing-library/dom": "^10.4.1",
