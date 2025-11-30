@@ -48,4 +48,9 @@ npm start
 El prototipo se abrirá en `http://localhost:3000`.
 
 ## Autores
-Trabajo realizado por el Grupo LasCasitas – ULPGC.
+Trabajo realizado por el Grupo 9:
+- Luigi Fedele
+- Fedele Zuccaro
+- Joan Martínez Perdomo
+  
+SIO ULPGC 2025/26
