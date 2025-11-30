@@ -25,10 +25,19 @@ universitaria **Las Casitas**, desarrollado como parte de la Práctica 3 de la a
 - Cálculo automático del total del pedido.
 - Sección de "Estado del pedido" donde se explica cómo funcionaría el sistema en una versión real.
 
-## Cómo ejecutar el prototipo
+## 🚀 Demo en línea (sin necesidad de instalar nada)
+
+El prototipo puede probarse directamente aquí:
+
+**https://gigioinfo.github.io/LasCasitasApp/**
+
+---
+
+## 🖥️ Cómo ejecutar el prototipo en local (opcional)
+
 1. Clonar este repositorio.
 2. Entrar en la carpeta `lascasitas-react`.
-3. Instalar las dependencias con:   
+3. Instalar las dependencias con: 
 ```
 npm install
 ```
