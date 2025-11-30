@@ -7,6 +7,7 @@ import zumoImg from './images/zumo.jpg';
 import tartaImg from './images/tarta.jpg';
 import Menu from './components/Menu';
 import Footer from './components/Footer';
+import { supabase } from './supabase';
 
 // Menú de ejemplo (luego lo podéis cambiar)
 const MENU_ITEMS = [
@@ -39,6 +40,54 @@ function App() {
   // 'sin_pedido' | 'en_preparacion'
 
   const totalFormatted = total.toFixed(2);
+
+  const USUARIO_DEMO = {
+    nombre: 'Alumno demo',
+    email: 'demo@ulpgc.es',
+    tipo: 'estudiante',
+  };
+
+  async function guardarPedidoEnSupabase(pedido, total) {
+    try {
+      // 1. Upsert del usuario
+      const { data: usuario, error: userError } = await supabase
+        .from('usuarios')
+        .upsert(USUARIO_DEMO)
+        .select()
+        .single();
+
+      if (userError) {
+        console.error('Error guardando usuario:', userError);
+        return;
+      }
+
+      // 2. Insert del pedido
+      const { error: pedidoError } = await supabase.from('pedidos').insert({
+        usuario_id: usuario.id,
+        total,
+        estado: 'en_preparacion',
+        contenido: pedido, // array de productos del pedido
+      });
+
+      if (pedidoError) {
+        console.error('Error guardando pedido:', pedidoError);
+        return;
+      }
+
+      console.log('Pedido guardado correctamente en Supabase');
+    } catch (e) {
+      console.error('Error general hablando con Supabase:', e);
+    }
+  }
+
+  const confirmarPedido = async () => {
+    if (pedido.length === 0) {
+      return;
+    }
+
+    await guardarPedidoEnSupabase(pedido, total);
+    setEstadoPedido('en_preparacion');
+  };
 
   return (
     <div className="app">
@@ -94,7 +143,7 @@ function App() {
                 {pedido.length > 0 && (
                   <button
                     style={{ marginLeft: '0.5rem' }}
-                    onClick={() => setEstadoPedido('en_preparacion')}
+                    onClick={confirmarPedido}
                   >
                     Confirmar pedido (simulación)
                   </button>
