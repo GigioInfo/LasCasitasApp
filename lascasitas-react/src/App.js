@@ -112,10 +112,10 @@ function App() {
               </p>
             )}
             {estadoPedido === 'en_preparacion' && (
-              <p>
-                El pedido está actualmente <strong>EN PREPARACIÓN</strong>. En una versión real,
-                la cafetería actualizaría este estado cuando el pedido estuviera listo para recoger.
-              </p>
+              <div className="estado-box">
+                El pedido está actualmente <strong>EN PREPARACIÓN</strong>.
+                En una versión real, la cafetería actualizaría este estado cuando estuviera listo para recoger.
+              </div>
             )}
           </section>
         )}

@@ -127,3 +127,12 @@
   border-top: 1px solid #dde3f0;
   margin-top: 1rem;
 }
+
+.estado-box {
+  background: #e8f0ff;
+  border-left: 5px solid #1b4f9c;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  margin-top: 1rem;
+  font-size: 1rem;
+}
