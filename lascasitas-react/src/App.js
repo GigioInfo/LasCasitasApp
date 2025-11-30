@@ -51,19 +51,19 @@ function App() {
           className={pagina === 'menu' ? 'nav-btn active' : 'nav-btn'}
           onClick={() => setPagina('menu')}
         >
-          Menú
+          🍽️ Menú
         </button>
         <button
           className={pagina === 'pedido' ? 'nav-btn active' : 'nav-btn'}
           onClick={() => setPagina('pedido')}
         >
-          Mi pedido ({pedido.length})
+          🧾 Mi pedido ({pedido.length})
         </button>
         <button
           className={pagina === 'estado' ? 'nav-btn active' : 'nav-btn'}
           onClick={() => setPagina('estado')}
         >
-          Estado del pedido
+          📦 Estado del pedido
         </button>
       </nav>
 
