@@ -38,6 +38,8 @@ function App() {
   const [estadoPedido, setEstadoPedido] = useState('sin_pedido');
   // 'sin_pedido' | 'en_preparacion'
 
+  const totalFormatted = total.toFixed(2);
+
   return (
     <div className="app">
       <header className="header">
@@ -57,7 +59,7 @@ function App() {
           className={pagina === 'pedido' ? 'nav-btn active' : 'nav-btn'}
           onClick={() => setPagina('pedido')}
         >
-          🧾 Mi pedido ({pedido.length})
+          🧾 Mi pedido ({pedido.length}) – {totalFormatted} €
         </button>
         <button
           className={pagina === 'estado' ? 'nav-btn active' : 'nav-btn'}
