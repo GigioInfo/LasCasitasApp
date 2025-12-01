@@ -233,6 +233,47 @@ function App() {
     cargarPedidosPanel();
   };
 
+  const cargarPerfilUsuario = async () => {
+  setCargandoPerfil(true);
+    try {
+      const { data: usuario, error: userError } = await supabase
+        .from('usuarios')
+        .select('id, nombre, email')
+        .eq('email', USUARIO_DEMO.email)
+        .single();
+
+      if (userError) throw userError;
+
+      setPerfilUsuario(usuario);
+
+      let puntos = 0;
+      const { data: filaPuntos, error: puntosError } = await supabase
+        .from('puntos_usuarios')
+        .select('puntos')
+        .eq('usuario_id', usuario.id)
+        .single();
+
+      if (!puntosError && filaPuntos) {
+        puntos = Number(filaPuntos.puntos) || 0;
+      }
+
+      setPuntosUsuario(puntos);
+
+      const { data: pedidosUsuario, error: pedidosError } = await supabase
+        .from('pedidos')
+        .select('id, total, estado')
+        .eq('usuario_id', usuario.id)
+        .order('id', { ascending: false });
+
+      if (!pedidosError && pedidosUsuario) {
+        setHistorialPedidos(pedidosUsuario);
+      }
+    } catch (e) {
+      console.error('Error cargando perfil de usuario:', e);
+    }
+    setCargandoPerfil(false);
+  };
+
   return (
     <div className="app">
       <header className="header">
