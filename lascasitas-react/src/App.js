@@ -363,40 +363,35 @@ function App() {
 
 
   const cargarPerfilUsuario = async () => {
+    if (!authUser) {
+      setPerfilUsuario(null);
+      setPuntosUsuario(0);
+      setHistorialPedidos([]);
+      return;
+    }
+
     setCargandoPerfil(true);
     try {
-      // 1. Buscar el usuario demo por email,
-      //    pero quedarnos solo con la última fila (id más alto)
-      const { data: usuarios, error: userError } = await supabase
+      // 1. Buscar perfil en 'usuarios' por auth_id
+      const { data: usuario, error: userError } = await supabase
         .from('usuarios')
         .select('id, nombre, email, tipo')
-        .eq('email', USUARIO_DEMO.email)
-        .order('id', { ascending: false }) // primero el más nuevo
-        .limit(1);
+        .eq('auth_id', authUser.id)
+        .single();
 
       if (userError) {
         throw userError;
       }
 
-      if (!usuarios || usuarios.length === 0) {
-        console.warn('No se encontró ningún usuario demo');
-        setPerfilUsuario(null);
-        setPuntosUsuario(0);
-        setHistorialPedidos([]);
-        setCargandoPerfil(false);
-        return;
-      }
-
-      const usuario = usuarios[0];
       setPerfilUsuario(usuario);
 
-      // 2. Leer puntos actuales de la tabla puntos_usuarios
+      // 2. Leer puntos de puntos_usuarios
       let puntos = 0;
       const { data: filaPuntos, error: puntosError } = await supabase
         .from('puntos_usuarios')
         .select('puntos')
         .eq('usuario_id', usuario.id)
-        .maybeSingle(); // puede no existir aún
+        .maybeSingle();
 
       if (!puntosError && filaPuntos) {
         puntos = Number(filaPuntos.puntos) || 0;
@@ -404,7 +399,7 @@ function App() {
 
       setPuntosUsuario(puntos);
 
-      // 3. Historial de pedidos del usuario
+      // 3. Historial de pedidos
       const { data: pedidosUsuario, error: pedidosError } = await supabase
         .from('pedidos')
         .select('id, total, estado')
@@ -416,6 +411,9 @@ function App() {
       }
     } catch (e) {
       console.error('Error cargando perfil de usuario:', e);
+      setPerfilUsuario(null);
+      setPuntosUsuario(0);
+      setHistorialPedidos([]);
     }
     setCargandoPerfil(false);
   };
