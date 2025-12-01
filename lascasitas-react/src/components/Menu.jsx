@@ -10,13 +10,15 @@ function Menu({ items, onAdd, cargando }) {
   }
 
   return (
-    <div className="menu">
+    <div className="menu-grid">
       {items.map((item) => (
-        <div key={item.id} className="menu-item">
-          {item.imagen && <img src={item.imagen} alt={item.nombre} />}
-          <h3>{item.nombre}</h3>
-          <p>{item.precio.toFixed(2)} €</p>
-          <button onClick={() => onAdd(item)}>
+        <div key={item.id} className="menu-card">
+          {item.imagen && (
+            <img className="menu-img" src={item.imagen} alt={item.nombre} />
+          )}
+          <h3 className="menu-title">{item.nombre}</h3>
+          <p className="menu-price">{item.precio.toFixed(2)} €</p>
+          <button className="menu-btn" onClick={() => onAdd(item)}>
             Añadir
           </button>
         </div>
