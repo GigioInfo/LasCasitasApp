@@ -420,6 +420,33 @@ function App() {
     setCargandoPerfil(false);
   };
 
+
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setAuthError(null);
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: loginEmail,
+      password: loginPassword,
+    });
+
+    if (error) {
+      console.error('Error en login:', error);
+      setAuthError(error.message);
+      return;
+    }
+
+    // se tutto ok, data.user viene gestito dal listener onAuthStateChange
+    setPagina('menu');
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setAuthUser(null);
+  };
+
+
   return (
     <div className="app">
       <header className="header">
