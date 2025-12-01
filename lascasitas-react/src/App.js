@@ -620,32 +620,72 @@ function App() {
           <section>
             <h2>Mi perfil</h2>
 
-            {cargandoPerfil && <p>Cargando perfil...</p>}
+            {authLoading && <p>Comprobando sesión...</p>}
 
-            {!cargandoPerfil && perfilUsuario && (
-              <>
-                <p><strong>Nombre:</strong> {perfilUsuario.nombre}</p>
-                <p><strong>Email:</strong> {perfilUsuario.email}</p>
-                <p><strong>Puntos acumulados:</strong> {puntosUsuario}</p>
-
-                <h3>Historial de pedidos</h3>
-                {historialPedidos.length === 0 && (
-                  <p>Aún no hay pedidos registrados para este usuario.</p>
-                )}
-                {historialPedidos.length > 0 && (
-                  <ul className="lista-historial">
-                    {historialPedidos.map((p) => (
-                      <li key={p.id}>
-                        Pedido #{p.id} – {Number(p.total).toFixed(2)} € – Estado: {p.estado}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </>
+            {/* Se NON c'è utente loggato → mostrar formulario de login */}
+            {!authLoading && !authUser && (
+              <div>
+                <p>Para ver tu perfil, inicia sesión:</p>
+                <form onSubmit={handleLogin} className="login-form">
+                  <div>
+                    <label>Email</label>
+                    <input
+                      type="email"
+                      value={loginEmail}
+                      onChange={(e) => setLoginEmail(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label>Contraseña</label>
+                    <input
+                      type="password"
+                      value={loginPassword}
+                      onChange={(e) => setLoginPassword(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <button type="submit">Iniciar sesión</button>
+                  {authError && <p className="error-text">{authError}</p>}
+                </form>
+              </div>
             )}
 
-            {!cargandoPerfil && !perfilUsuario && (
-              <p>No se ha encontrado el usuario demo en la base de datos.</p>
+            {/* Se HAY usuario logueado → mostramos perfil y puntos */}
+            {!authLoading && authUser && (
+              <>
+                <p>Sesión iniciada como <strong>{authUser.email}</strong></p>
+                <button onClick={handleLogout}>Cerrar sesión</button>
+
+                {/* Aquí reutilizamos tu lógica de perfil, pero cargando con auth_id */}
+                {cargandoPerfil && <p>Cargando perfil...</p>}
+
+                {!cargandoPerfil && perfilUsuario && (
+                  <>
+                    <p><strong>Nombre:</strong> {perfilUsuario.nombre}</p>
+                    <p><strong>Email:</strong> {perfilUsuario.email}</p>
+                    <p><strong>Puntos acumulados:</strong> {puntosUsuario}</p>
+
+                    <h3>Historial de pedidos</h3>
+                    {historialPedidos.length === 0 && (
+                      <p>Aún no hay pedidos registrados para este usuario.</p>
+                    )}
+                    {historialPedidos.length > 0 && (
+                      <ul className="lista-historial">
+                        {historialPedidos.map((p) => (
+                          <li key={p.id}>
+                            Pedido #{p.id} – {Number(p.total).toFixed(2)} € – Estado: {p.estado}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </>
+                )}
+
+                {!cargandoPerfil && !perfilUsuario && (
+                  <p>No se ha encontrado el perfil en la tabla usuarios.</p>
+                )}
+              </>
             )}
           </section>
         )}
