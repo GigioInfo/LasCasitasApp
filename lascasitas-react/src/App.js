@@ -239,6 +239,85 @@ function App() {
     cargarPedidosPanel();
   };
 
+
+
+
+
+  const cargarEstadisticasPanel = async () => {
+    try {
+      const { data: pedidos, error: pedidosError } = await supabase
+        .from('pedidos')
+        .select('id, total');
+
+      if (pedidosError) {
+        console.error('Error cargando pedidos para estadísticas:', pedidosError);
+        return;
+      }
+
+      const totalVentas = pedidos.reduce(
+        (suma, p) => suma + Number(p.total),
+        0
+      );
+      const numPedidos = pedidos.length;
+
+      const { data: lineas, error: lineasError } = await supabase
+        .from('lineas_pedido')
+        .select('producto_id, cantidad');
+
+      if (lineasError) {
+        console.error('Error cargando líneas de pedido para estadísticas:', lineasError);
+        setStatsPanel({
+          totalVentas,
+          numPedidos,
+          productoTopNombre: null,
+        });
+        return;
+      }
+
+      const contador = {};
+      lineas.forEach((l) => {
+        const qty = Number(l.cantidad) || 0;
+        contador[l.producto_id] = (contador[l.producto_id] || 0) + qty;
+      });
+
+      let productoTopId = null;
+      let maxCantidad = 0;
+      Object.entries(contador).forEach(([id, qty]) => {
+        if (qty > maxCantidad) {
+          maxCantidad = qty;
+          productoTopId = Number(id);
+        }
+      });
+
+      let productoTopNombre = null;
+
+      if (productoTopId !== null) {
+        const { data: producto, error: prodError } = await supabase
+          .from('productos')
+          .select('nombre')
+          .eq('id', productoTopId)
+          .single();
+
+        if (!prodError && producto) {
+          productoTopNombre = producto.nombre;
+        }
+      }
+
+      setStatsPanel({
+        totalVentas,
+        numPedidos,
+        productoTopNombre,
+      });
+    } catch (e) {
+      console.error('Error general calculando estadísticas del panel:', e);
+    }
+  };
+
+
+
+
+
+  
   const cargarPerfilUsuario = async () => {
   setCargandoPerfil(true);
     try {
