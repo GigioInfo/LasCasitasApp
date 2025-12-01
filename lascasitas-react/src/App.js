@@ -128,9 +128,37 @@ function App() {
 
       if (pagoError) throw pagoError;
 
+      // 5. Calcular puntos (1 punto por cada 2 €) y acumularlos para el usuario demo
+      const puntosGanados = Math.floor(Number(total) / 2);
+
+      if (puntosGanados > 0) {
+        let puntosPrevios = 0;
+
+        // Leer puntos actuales de la tabla puntos_usuarios (si no existe fila, asumimos 0)
+        const { data: filaPuntos, error: puntosSelectError } = await supabase
+          .from('puntos_usuarios')
+          .select('puntos')
+          .eq('usuario_id', usuario.id)
+          .single();
+
+        if (!puntosSelectError && filaPuntos) {
+          puntosPrevios = Number(filaPuntos.puntos) || 0;
+        }
+
+        const { error: puntosUpsertError } = await supabase
+          .from('puntos_usuarios')
+          .upsert({
+            usuario_id: usuario.id,
+            puntos: puntosPrevios + puntosGanados,
+          });
+
+        if (puntosUpsertError) throw puntosUpsertError;
+      }
+
       console.log('Pedido, líneas y pago guardados correctamente');
 
       return nuevoPedido.id;
+
     } catch (e) {
       console.error('Error guardando pedido en Supabase:', e);
       return null;
