@@ -117,29 +117,46 @@ function App() {
 
   async function guardarPedidoEnSupabase(pedido, total) {
     try {
-      // 1. Buscar el usuario demo en 'usuarios' (último con ese email)
-      const { data: usuarios, error: userError } = await supabase
-        .from('usuarios')
-        .select('id, nombre, email, tipo, auth_id')
-        .eq('email', USUARIO_DEMO.email)
-        .order('id', { ascending: false })
-        .limit(1);
+      let usuario;
 
-      if (userError || !usuarios || usuarios.length === 0) {
-        console.error('No se ha encontrado el usuario demo en usuarios:', userError);
-        return null;
+      // 1. Se c'è un utente autenticato, usiamo auth_id
+      if (authUser) {
+        const { data, error } = await supabase
+          .from('usuarios')
+          .select('id, nombre, email, tipo')
+          .eq('auth_id', authUser.id)
+          .single();
+
+        if (error) {
+          console.error('No se ha encontrado perfil para el usuario autenticado:', error);
+          return null;
+        }
+
+        usuario = data;
+      } else {
+        // 2. Fallback: utente demo (come prima)
+        const { data: usuarios, error: userError } = await supabase
+          .from('usuarios')
+          .select('id, nombre, email, tipo, auth_id')
+          .eq('email', USUARIO_DEMO.email)
+          .order('id', { ascending: false })
+          .limit(1);
+
+        if (userError || !usuarios || usuarios.length === 0) {
+          console.error('No se ha encontrado el usuario demo en usuarios:', userError);
+          return null;
+        }
+
+        usuario = usuarios[0];
       }
 
-      const usuario = usuarios[0];
-
-      // 2. Crear pedido (solo columnas que EXISTEN en la tabla 'pedidos')
+      // 3. Crear pedido
       const { data: nuevoPedido, error: pedidoError } = await supabase
         .from('pedidos')
         .insert({
           usuario_id: usuario.id,
           total: total,
           estado: 'en_preparacion',
-          // opcional: también guardamos el contenido en JSON si tienes esta columna
           contenido: pedido,
         })
         .select()
@@ -147,7 +164,7 @@ function App() {
 
       if (pedidoError) throw pedidoError;
 
-      // 3. Insertar líneas en la tabla correcta: 'lineas_pedido'
+      // 4. Insertar líneas
       const lineas = pedido.map((item) => ({
         pedido_id: nuevoPedido.id,
         producto_id: item.id,
@@ -156,12 +173,12 @@ function App() {
       }));
 
       const { error: lineasError } = await supabase
-        .from('lineas_pedido')   // ← NOMBRE REAL DE LA TABLA
+        .from('lineas_pedido')
         .insert(lineas);
 
       if (lineasError) throw lineasError;
 
-      // 4. Registrar pago simulado (usa las columnas de tu tabla 'pagos')
+      // 5. Registrar pago simulado
       const { error: pagoError } = await supabase.from('pagos').insert({
         pedido_id: nuevoPedido.id,
         metodo: 'tarjeta',
@@ -172,18 +189,18 @@ function App() {
 
       if (pagoError) throw pagoError;
 
-      // 5. Calcular puntos (1 punto por cada 2 €) y acumularlos para el usuario demo
+      // 6. Puntos (1 punto ogni 2 €)
       const puntosGanados = Math.floor(Number(total) / 2);
 
       if (puntosGanados > 0) {
         let puntosPrevios = 0;
 
-        // Leer puntos actuales de la tabla puntos_usuarios (si no existe fila, asumimos 0)
+        // meglio usare maybeSingle così NON va in errore se la riga non esiste ancora
         const { data: filaPuntos, error: puntosSelectError } = await supabase
           .from('puntos_usuarios')
           .select('puntos')
           .eq('usuario_id', usuario.id)
-          .single();
+          .maybeSingle();
 
         if (!puntosSelectError && filaPuntos) {
           puntosPrevios = Number(filaPuntos.puntos) || 0;
@@ -199,8 +216,7 @@ function App() {
         if (puntosUpsertError) throw puntosUpsertError;
       }
 
-      console.log('Pedido, líneas y pago guardados correctamente');
-
+      console.log('Pedido, líneas, pago y puntos guardados correctamente');
       return nuevoPedido.id;
 
     } catch (e) {
