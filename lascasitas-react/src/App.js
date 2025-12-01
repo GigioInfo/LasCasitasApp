@@ -172,8 +172,8 @@ function App() {
 
     const { data, error } = await supabase
       .from('pedidos')
-      .select('id, total, estado, hora_pedido')
-      .order('hora_pedido', { ascending: false });
+      .select('id, total, estado')
+      .order('id', { ascending: false });
 
     setCargandoPanel(false);
 
@@ -330,8 +330,6 @@ function App() {
                   <li key={p.id}>
                     <div>
                       <strong>Pedido #{p.id}</strong> – {p.total.toFixed(2)} € – Estado: {p.estado}
-                      <br />
-                      <small>Hora: {new Date(p.hora_pedido).toLocaleTimeString()}</small>
                     </div>
                     {p.estado !== 'listo' && (
                       <button onClick={() => marcarPedidoListo(p.id)}>
