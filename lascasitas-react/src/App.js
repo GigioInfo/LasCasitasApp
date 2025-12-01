@@ -6,6 +6,9 @@ import { supabase } from './supabase';
 
 function App() {
 
+  const [pedidosPanel, setPedidosPanel] = useState([]);
+  const [cargandoPanel, setCargandoPanel] = useState(false);
+
   const [estadoRemoto, setEstadoRemoto] = useState(null);
   const [cargandoEstado, setCargandoEstado] = useState(false);
 
@@ -161,6 +164,42 @@ function App() {
     setEstadoRemoto(data.estado);
   };
 
+
+
+  //cargar pedidos
+  const cargarPedidosPanel = async () => {
+    setCargandoPanel(true);
+
+    const { data, error } = await supabase
+      .from('pedidos')
+      .select('id, total, estado, hora_pedido')
+      .order('hora_pedido', { ascending: false });
+
+    setCargandoPanel(false);
+
+    if (error) {
+      console.error('Error cargando pedidos para panel:', error);
+      return;
+    }
+
+    setPedidosPanel(data);
+  };
+
+  //marcar listo
+  const marcarPedidoListo = async (id) => {
+    const { error } = await supabase
+      .from('pedidos')
+      .update({ estado: 'listo' })
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error marcando pedido como listo:', error);
+      return;
+    }
+
+    cargarPedidosPanel();
+  };
+
   return (
     <div className="app">
       <header className="header">
@@ -186,6 +225,12 @@ function App() {
           onClick={() => setPagina('estado')}
         >
           📦 Estado del pedido
+        </button>
+        <button
+          className={pagina === 'panel' ? 'nav-btn active' : 'nav-btn'}
+          onClick={() => setPagina('panel')}
+        >
+          🧑‍🍳 Panel interno
         </button>
       </nav>
 
@@ -264,6 +309,38 @@ function App() {
                   <p>No se ha encontrado el estado del pedido.</p>
                 )}
               </>
+            )}
+          </section>
+        )}
+
+        {pagina === 'panel' && (
+          <section>
+            <h2>Panel interno – Pedidos</h2>
+            <button onClick={cargarPedidosPanel}>Actualizar lista</button>
+
+            {cargandoPanel && <p>Cargando pedidos...</p>}
+
+            {!cargandoPanel && pedidosPanel.length === 0 && (
+              <p>No hay pedidos registrados.</p>
+            )}
+
+            {!cargandoPanel && pedidosPanel.length > 0 && (
+              <ul className="lista-pedidos-panel">
+                {pedidosPanel.map((p) => (
+                  <li key={p.id}>
+                    <div>
+                      <strong>Pedido #{p.id}</strong> – {p.total.toFixed(2)} € – Estado: {p.estado}
+                      <br />
+                      <small>Hora: {new Date(p.hora_pedido).toLocaleTimeString()}</small>
+                    </div>
+                    {p.estado !== 'listo' && (
+                      <button onClick={() => marcarPedidoListo(p.id)}>
+                        Marcar como listo
+                      </button>
+                    )}
+                  </li>
+                ))}
+              </ul>
             )}
           </section>
         )}
