@@ -8,6 +8,8 @@ function App() {
   const [menuItems, setMenuItems] = useState([]);
   const [cargandoMenu, setCargandoMenu] = useState(true);
 
+  const [ultimoPedidoId, setUltimoPedidoId] = useState(null);
+
   useEffect(() => {
     const cargarMenu = async () => {
       try {
@@ -23,7 +25,7 @@ function App() {
         const itemsAdaptados = data.map((row) => ({
           id: row.id,
           nombre: row.nombre,
-          precio: row.precio,
+          precio: Number(row.precio),
           imagen: row.imagen_url || null,
           categoria_id: row.categoria_id,
         }));
@@ -45,7 +47,13 @@ function App() {
     setPedido([...pedido, item]);
   };
 
-  const total = pedido.reduce((suma, item) => suma + item.precio, 0);
+  const totalBruto = pedido.reduce(
+    (suma, item) => suma + Number(item.precio),
+    0
+  );
+
+  const total = Math.round(totalBruto * 100) / 100;
+
   const vaciarPedido = () => setPedido([]);
 
   const [estadoPedido, setEstadoPedido] = useState('sin_pedido');
@@ -59,39 +67,74 @@ function App() {
 
   async function guardarPedidoEnSupabase(pedido, total) {
     try {
+      // 1. Upsert usuario demo
       const { data: usuario, error: userError } = await supabase
         .from('usuarios')
         .upsert(USUARIO_DEMO)
         .select()
         .single();
 
-      if (userError) {
-        console.error('Error guardando usuario:', userError);
-        return;
-      }
+      if (userError) throw userError;
 
-      const { error: pedidoError } = await supabase.from('pedidos').insert({
-        usuario_id: usuario.id,
-        total,
-        estado: 'en_preparacion',
-        contenido: pedido,
+      // 2. Crear pedido (solo columnas que EXISTEN en la tabla 'pedidos')
+      const { data: nuevoPedido, error: pedidoError } = await supabase
+        .from('pedidos')
+        .insert({
+          usuario_id: usuario.id,
+          total: total,
+          estado: 'en_preparacion',
+          // opcional: también guardamos el contenido en JSON si tienes esta columna
+          contenido: pedido,
+        })
+        .select()
+        .single();
+
+      if (pedidoError) throw pedidoError;
+
+      // 3. Insertar líneas en la tabla correcta: 'lineas_pedido'
+      const lineas = pedido.map((item) => ({
+        pedido_id: nuevoPedido.id,
+        producto_id: item.id,
+        cantidad: 1,
+        precio_unitario: item.precio,
+      }));
+
+      const { error: lineasError } = await supabase
+        .from('lineas_pedido')   // ← NOMBRE REAL DE LA TABLA
+        .insert(lineas);
+
+      if (lineasError) throw lineasError;
+
+      // 4. Registrar pago simulado (usa las columnas de tu tabla 'pagos')
+      const { error: pagoError } = await supabase.from('pagos').insert({
+        pedido_id: nuevoPedido.id,
+        metodo: 'tarjeta',
+        importe: total,
+        fecha_pago: new Date().toISOString(),
+        estado: 'confirmado',
       });
 
-      if (pedidoError) {
-        console.error('Error guardando pedido:', pedidoError);
-        return;
-      }
+      if (pagoError) throw pagoError;
 
-      console.log('Pedido guardado correctamente en Supabase');
+      console.log('Pedido, líneas y pago guardados correctamente');
+
+      return nuevoPedido.id;
     } catch (e) {
-      console.error('Error general hablando con Supabase:', e);
+      console.error('Error guardando pedido en Supabase:', e);
+      return null;
     }
   }
 
   const confirmarPedido = async () => {
     if (pedido.length === 0) return;
-    await guardarPedidoEnSupabase(pedido, total);
+
+    const idPedido = await guardarPedidoEnSupabase(pedido, total);
+    if (!idPedido) return;
+
+    setUltimoPedidoId(idPedido);
     setEstadoPedido('en_preparacion');
+    setPagina('estado'); // opzionale: vai direttamente alla pagina stato
+    vaciarPedido();
   };
 
   return (
@@ -154,7 +197,7 @@ function App() {
                     style={{ marginLeft: '0.5rem' }}
                     onClick={confirmarPedido}
                   >
-                    Confirmar pedido (simulación)
+                    Confirmar pedido
                   </button>
                 )}
               </>
