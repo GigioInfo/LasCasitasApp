@@ -65,6 +65,31 @@ function App() {
     cargarMenu();
   }, []);
 
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data, error } = await supabase.auth.getUser();
+
+      if (!error && data?.user) {
+        setAuthUser(data.user);   // utente autenticato
+      }
+
+      setAuthLoading(false);
+    };
+
+    checkSession();
+
+    // Listener per cambi di sessione (login / logout)
+    const { data: subscription } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setAuthUser(session?.user ?? null);
+      }
+    );
+
+    return () => {
+      subscription.subscription.unsubscribe();
+    };
+  }, []);
+
   const [pagina, setPagina] = useState('menu');
   const [pedido, setPedido] = useState([]);
 
