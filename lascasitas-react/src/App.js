@@ -5,6 +5,10 @@ import Footer from './components/Footer';
 import { supabase } from './supabase';
 
 function App() {
+
+  const [estadoRemoto, setEstadoRemoto] = useState(null);
+  const [cargandoEstado, setCargandoEstado] = useState(false);
+
   const [menuItems, setMenuItems] = useState([]);
   const [cargandoMenu, setCargandoMenu] = useState(true);
 
@@ -133,8 +137,28 @@ function App() {
 
     setUltimoPedidoId(idPedido);
     setEstadoPedido('en_preparacion');
-    setPagina('estado'); // opzionale: vai direttamente alla pagina stato
+    setPagina('estado');
     vaciarPedido();
+  };
+
+  const actualizarEstadoPedido = async () => {
+    if (!ultimoPedidoId) return;
+    setCargandoEstado(true);
+
+    const { data, error } = await supabase
+      .from('pedidos')
+      .select('estado')
+      .eq('id', ultimoPedidoId)
+      .single();
+
+    setCargandoEstado(false);
+
+    if (error) {
+      console.error('Error consultando estado del pedido:', error);
+      return;
+    }
+
+    setEstadoRemoto(data.estado);
   };
 
   return (
@@ -208,17 +232,38 @@ function App() {
         {pagina === 'estado' && (
           <section>
             <h2>Estado del pedido</h2>
-            {estadoPedido === 'sin_pedido' && (
+
+            {!ultimoPedidoId && (
               <p>
-                No hay ningún pedido en preparación. Primero añade productos en el
-                menú y confirma el pedido en la sección "Mi pedido" durante la presentación.
+                No hay ningún pedido reciente. Haz un pedido desde el menú y confírmalo para ver su estado aquí.
               </p>
             )}
-            {estadoPedido === 'en_preparacion' && (
-              <div className="estado-box">
-                El pedido está actualmente <strong>EN PREPARACIÓN</strong>.
-                En una versión real, la cafetería actualizaría este estado cuando estuviera listo para recoger.
-              </div>
+
+            {ultimoPedidoId && (
+              <>
+                <p>Número de pedido: #{ultimoPedidoId}</p>
+                <button onClick={actualizarEstadoPedido}>
+                  Actualizar estado
+                </button>
+
+                {cargandoEstado && <p>Consultando estado...</p>}
+
+                {estadoRemoto === 'en_preparacion' && (
+                  <div className="estado-box">
+                    El pedido está actualmente <strong>EN PREPARACIÓN</strong>.
+                  </div>
+                )}
+
+                {estadoRemoto === 'listo' && (
+                  <div className="estado-box listo">
+                    El pedido está <strong>LISTO</strong> para recoger en barra.
+                  </div>
+                )}
+
+                {!cargandoEstado && !estadoRemoto && (
+                  <p>No se ha encontrado el estado del pedido.</p>
+                )}
+              </>
             )}
           </section>
         )}
