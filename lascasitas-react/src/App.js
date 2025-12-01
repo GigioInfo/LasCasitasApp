@@ -22,6 +22,13 @@ function App() {
   const [historialPedidos, setHistorialPedidos] = useState([]);
   const [cargandoPerfil, setCargandoPerfil] = useState(false);
 
+  const [authUser, setAuthUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [authError, setAuthError] = useState(null);
+
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+
   const [statsPanel, setStatsPanel] = useState({
     totalVentas: 0,
     numPedidos: 0,
@@ -183,8 +190,14 @@ function App() {
     const idPedido = await guardarPedidoEnSupabase(pedido, total);
     if (!idPedido) return;
 
+    // nuovo pedido: aggiorniamo SUBITO lo stato mostrato nella página "Estado"
     setUltimoPedidoId(idPedido);
+    setEstadoRemoto('en_preparacion');  // mostra subito EN PREPARACIÓN per questo pedido
+    setCargandoEstado(false);           // assicuriamoci che non sia in "loading"
+
+    // (este estadoPedido realmente casi no lo usas, pero lo dejamos por coherencia)
     setEstadoPedido('en_preparacion');
+
     setPagina('estado');
     vaciarPedido();
   };
