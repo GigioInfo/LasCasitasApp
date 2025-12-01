@@ -306,6 +306,15 @@ function App() {
         >
           🧑‍🍳 Panel interno
         </button>
+        <button
+          className={pagina === 'perfil' ? 'nav-btn active' : 'nav-btn'}
+          onClick={() => {
+            setPagina('perfil');
+            cargarPerfilUsuario();
+          }}
+        >
+          👤 Mi perfil
+        </button>
       </nav>
 
       <main className="contenido">
