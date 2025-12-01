@@ -85,14 +85,20 @@ function App() {
 
   async function guardarPedidoEnSupabase(pedido, total) {
     try {
-      // 1. Upsert usuario demo
-      const { data: usuario, error: userError } = await supabase
+      // 1. Buscar el usuario demo en 'usuarios' (último con ese email)
+      const { data: usuarios, error: userError } = await supabase
         .from('usuarios')
-        .upsert(USUARIO_DEMO)
-        .select()
-        .single();
+        .select('id, nombre, email, tipo, auth_id')
+        .eq('email', USUARIO_DEMO.email)
+        .order('id', { ascending: false })
+        .limit(1);
 
-      if (userError) throw userError;
+      if (userError || !usuarios || usuarios.length === 0) {
+        console.error('No se ha encontrado el usuario demo en usuarios:', userError);
+        return null;
+      }
+
+      const usuario = usuarios[0];
 
       // 2. Crear pedido (solo columnas que EXISTEN en la tabla 'pedidos')
       const { data: nuevoPedido, error: pedidoError } = await supabase
