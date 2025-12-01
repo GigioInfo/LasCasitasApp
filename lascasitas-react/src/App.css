@@ -1,3 +1,5 @@
+/* ===== LAYOUT GENERALE ===== */
+
 .app {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   min-height: 100vh;
@@ -6,27 +8,33 @@
   padding-bottom: 2rem;
 }
 
+/* Header in alto */
 .header {
-  background: #1b4f9c;
+  background: linear-gradient(135deg, #1b4f9c, #2563eb);
   color: white;
   padding: 1.5rem 2rem;
   text-align: center;
+  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.25);
 }
 
 .header h1 {
   margin: 0;
+  font-size: 1.8rem;
 }
 
 .header p {
   margin: 0.3rem 0 0;
   font-size: 0.95rem;
+  opacity: 0.9;
 }
+
+/* ===== NAVBAR ===== */
 
 .nav {
   display: flex;
   justify-content: center;
-  gap: 1rem;
-  padding: 1rem;
+  gap: 0.75rem;
+  padding: 0.9rem 1rem 0.7rem;
   background: #e8efff;
   position: sticky;
   top: 0;
@@ -42,19 +50,58 @@
   cursor: pointer;
   font-size: 0.95rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: background 0.15s ease, transform 0.08s ease,
+    box-shadow 0.15s ease, color 0.15s ease;
+}
+
+.nav-btn:hover {
+  background: #e5edff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
 }
 
 .nav-btn.active {
   background: #1b4f9c;
   color: white;
   font-weight: 600;
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.4);
 }
+
+/* ===== CONTENUTO CENTRALE ===== */
 
 .contenido {
   max-width: 900px;
   margin: 1.5rem auto;
   padding: 0 1rem 2rem;
 }
+
+/* Ogni pagina in una card bianca */
+.contenido section {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 1.75rem 1.6rem 1.4rem;
+  box-shadow: 0 14px 40px rgba(15, 23, 42, 0.08);
+  border: 1px solid rgba(203, 213, 225, 0.6);
+}
+
+.contenido h2 {
+  font-size: 1.3rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.contenido h2::before {
+  content: "•";
+  color: #2563eb;
+  font-size: 1.4rem;
+}
+
+/* ===== MENU (VECCHIE CLASSI, SE ANCORA USATE) ===== */
 
 .lista-menu {
   display: grid;
@@ -76,14 +123,6 @@
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
 }
 
-.tarjeta-menu button:hover {
-  opacity: 0.9;
-}
-
-.tarjeta-menu h3 {
-  margin-top: 0;
-}
-
 .tarjeta-menu button {
   margin-top: 0.5rem;
   padding: 0.4rem 0.8rem;
@@ -95,20 +134,12 @@
   font-size: 0.9rem;
 }
 
-.lista-pedido {
-  list-style: none;
-  padding-left: 0;
+.tarjeta-menu button:hover {
+  opacity: 0.9;
 }
 
-.lista-pedido li {
-  background: white;
-  margin-bottom: 0.4rem;
-  padding: 0.5rem 0.8rem;
-  border-radius: 8px;
-}
-
-.total {
-  margin-top: 0.8rem;
+.tarjeta-menu h3 {
+  margin-top: 0;
 }
 
 .imagen-menu {
@@ -119,24 +150,7 @@
   margin-bottom: 0.6rem;
 }
 
-.footer {
-  text-align: center;
-  padding: 1rem;
-  font-size: 0.85rem;
-  color: #555;
-  border-top: 1px solid #dde3f0;
-  margin-top: 1rem;
-}
-
-.estado-box {
-  background: #e8f0ff;
-  border-left: 5px solid #1b4f9c;
-  padding: 1rem 1.5rem;
-  border-radius: 8px;
-  margin-top: 1rem;
-  font-size: 1rem;
-}
-
+/* ===== MENU NUOVO (grid + card che stai usando ora) ===== */
 
 .menu-grid {
   display: grid;
@@ -144,7 +158,6 @@
   gap: 25px;
   padding: 20px;
 }
-
 
 .menu-card {
   background: #fff;
@@ -159,14 +172,12 @@
   transform: translateY(-4px);
 }
 
-
 .menu-img {
   width: 100%;
   height: 180px;
   object-fit: cover;
   border-radius: 10px;
 }
-
 
 .menu-title {
   margin: 10px 0 5px 0;
@@ -192,4 +203,184 @@
 
 .menu-btn:hover {
   background: #0b5ed7;
+}
+
+/* ===== PAGINA "MI PEDIDO" ===== */
+
+.lista-pedido {
+  list-style: none;
+  padding-left: 0;
+  margin: 0 0 1rem;
+}
+
+.lista-pedido li {
+  background: white;
+  margin-bottom: 0.4rem;
+  padding: 0.5rem 0.8rem;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px dashed rgba(148, 163, 184, 0.5);
+  font-size: 0.95rem;
+}
+
+.lista-pedido li:last-child {
+  border-bottom: none;
+}
+
+.total {
+  margin-top: 0.8rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.total strong {
+  color: #111827;
+}
+
+/* Bottoni generali dentro le sezioni */
+section button {
+  border-radius: 999px;
+  border: none;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  background: #0f766e;
+  color: white;
+  box-shadow: 0 3px 10px rgba(15, 118, 110, 0.35);
+  transition: background 0.15s ease, box-shadow 0.15s ease,
+    transform 0.08s ease;
+}
+
+section button:hover {
+  background: #0d9488;
+  box-shadow: 0 5px 16px rgba(13, 148, 136, 0.4);
+  transform: translateY(-1px);
+}
+
+/* Primo bottone nella sezione (es. "Vaciar pedido") più neutro */
+section button:first-of-type {
+  background: #e5e7eb;
+  color: #111827;
+  box-shadow: 0 2px 8px rgba(148, 163, 184, 0.45);
+}
+
+section button:first-of-type:hover {
+  background: #d1d5db;
+}
+
+/* ===== PAGINA "ESTADO DEL PEDIDO" ===== */
+
+.estado-box {
+  background: #e8f0ff;
+  border-left: 5px solid #1b4f9c;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  margin-top: 1rem;
+  font-size: 1rem;
+}
+
+.estado-box.listo {
+  background: #ecfdf5;
+  border-left-color: #16a34a;
+  color: #166534;
+}
+
+/* ===== PANEL INTERNO ===== */
+
+.panel-dashboard {
+  margin-top: 1.25rem;
+  margin-bottom: 1.25rem;
+  padding: 0.9rem 1rem;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #f9fafb, #e0f2fe);
+  border: 1px solid rgba(148, 163, 184, 0.4);
+}
+
+.panel-dashboard h3 {
+  margin-top: 0;
+  margin-bottom: 0.6rem;
+  font-size: 1rem;
+}
+
+.panel-dashboard p {
+  margin: 0.2rem 0;
+  font-size: 0.9rem;
+}
+
+/* Lista di ordini nel panel interno */
+.lista-pedidos-panel {
+  list-style: none;
+  padding: 0;
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.lista-pedidos-panel li {
+  padding: 0.75rem 0.85rem;
+  border-radius: 12px;
+  background: #f9fafb;
+  border: 1px solid rgba(209, 213, 219, 0.8);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+.lista-pedidos-panel li > div {
+  max-width: 75%;
+}
+
+/* bottone "Marcar como listo" dentro il panel */
+.lista-pedidos-panel button {
+  padding: 0.35rem 0.8rem;
+  font-size: 0.85rem;
+  background: #22c55e;
+  color: #064e3b;
+  box-shadow: 0 3px 10px rgba(34, 197, 94, 0.35);
+}
+
+.lista-pedidos-panel button:hover {
+  background: #16a34a;
+}
+
+/* ===== PAGINA "MI PERFIL" ===== */
+
+.lista-historial {
+  list-style: none;
+  padding: 0;
+  margin-top: 0.7rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.lista-historial li {
+  padding: 0.6rem 0.75rem;
+  border-radius: 10px;
+  background: #f9fafb;
+  border: 1px solid rgba(209, 213, 219, 0.8);
+  font-size: 0.9rem;
+}
+
+section p {
+  font-size: 0.9rem;
+}
+
+section p strong {
+  color: #111827;
+}
+
+/* ===== FOOTER ===== */
+
+.footer {
+  text-align: center;
+  padding: 1rem;
+  font-size: 0.85rem;
+  color: #555;
+  border-top: 1px solid #dde3f0;
+  margin-top: 1rem;
 }
