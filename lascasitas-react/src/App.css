@@ -1,5 +1,3 @@
-/* ===== LAYOUT GENERALE ===== */
-
 .app {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   min-height: 100vh;
@@ -8,7 +6,7 @@
   padding-bottom: 2rem;
 }
 
-/* Header in alto */
+
 .header {
   background: linear-gradient(135deg, #1b4f9c, #2563eb);
   color: white;
@@ -70,7 +68,7 @@
   box-shadow: 0 6px 18px rgba(37, 99, 235, 0.4);
 }
 
-/* ===== CONTENUTO CENTRALE ===== */
+/* ===== CONTENIDO CENTRAL ===== */
 
 .contenido {
   max-width: 900px;
@@ -78,7 +76,7 @@
   padding: 0 1rem 2rem;
 }
 
-/* Ogni pagina in una card bianca */
+
 .contenido section {
   background: #ffffff;
   border-radius: 16px;
@@ -101,56 +99,9 @@
   font-size: 1.4rem;
 }
 
-/* ===== MENU (VECCHIE CLASSI, SE ANCORA USATE) ===== */
 
-.lista-menu {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 1rem;
-  margin-top: 1rem;
-}
 
-.tarjeta-menu {
-  background: white;
-  border-radius: 12px;
-  padding: 1rem;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-  transition: transform 0.1s ease, box-shadow 0.1s ease;
-}
-
-.tarjeta-menu:hover {
-  transform: translateY(-4px) scale(1.01);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
-}
-
-.tarjeta-menu button {
-  margin-top: 0.5rem;
-  padding: 0.4rem 0.8rem;
-  border-radius: 999px;
-  border: none;
-  background: #1b4f9c;
-  color: white;
-  cursor: pointer;
-  font-size: 0.9rem;
-}
-
-.tarjeta-menu button:hover {
-  opacity: 0.9;
-}
-
-.tarjeta-menu h3 {
-  margin-top: 0;
-}
-
-.imagen-menu {
-  width: 100%;
-  height: 120px;
-  object-fit: cover;
-  border-radius: 10px;
-  margin-bottom: 0.6rem;
-}
-
-/* ===== MENU NUOVO (grid + card che stai usando ora) ===== */
+/* ===== MENU  ===== */
 
 .menu-grid {
   display: grid;
@@ -239,7 +190,7 @@
   color: #111827;
 }
 
-/* Bottoni generali dentro le sezioni */
+
 section button {
   border-radius: 999px;
   border: none;
@@ -259,7 +210,7 @@ section button:hover {
   transform: translateY(-1px);
 }
 
-/* Primo bottone nella sezione (es. "Vaciar pedido") più neutro */
+
 section button:first-of-type {
   background: #e5e7eb;
   color: #111827;
@@ -309,7 +260,7 @@ section button:first-of-type:hover {
   font-size: 0.9rem;
 }
 
-/* Lista di ordini nel panel interno */
+
 .lista-pedidos-panel {
   list-style: none;
   padding: 0;
@@ -334,7 +285,7 @@ section button:first-of-type:hover {
   max-width: 75%;
 }
 
-/* bottone "Marcar como listo" dentro il panel */
+
 .lista-pedidos-panel button {
   padding: 0.35rem 0.8rem;
   font-size: 0.85rem;
@@ -383,4 +334,191 @@ section p strong {
   color: #555;
   border-top: 1px solid #dde3f0;
   margin-top: 1rem;
+}
+
+
+
+
+/*LOGIN*/
+/* --- Área de login / perfil --- */
+
+.login-card {
+  max-width: 420px;
+  margin: 1.5rem auto 0;
+  padding: 1.75rem 2rem;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+  border: 1px solid #e0e6f4;
+}
+
+.login-title {
+  margin: 0 0 0.25rem;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #1b2559;
+}
+
+.login-subtitle {
+  margin: 0 0 1.25rem;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.login-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.login-field label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #4b5563;
+  margin-bottom: 0.25rem;
+}
+
+.login-field input {
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  padding: 0.55rem 0.8rem;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.login-field input:focus {
+  border-color: #1b4f9c;
+  box-shadow: 0 0 0 2px rgba(27, 79, 156, 0.18);
+}
+
+/* bottone principale riutilizzabile */
+.btn-primary {
+  margin-top: 0.4rem;
+  padding: 0.6rem 1rem;
+  border-radius: 999px;
+  border: none;
+  background: linear-gradient(135deg, #1b4f9c, #2563eb);
+  color: #ffffff;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.25);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 26px rgba(37, 99, 235, 0.3);
+  opacity: 0.95;
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.2);
+}
+
+.error-text {
+  margin-top: 0.4rem;
+  font-size: 0.85rem;
+  color: #dc2626;
+}
+
+/* ===== PERFIL AUTENTICADO ===== */
+
+.perfil-card {
+  max-width: 720px;
+  margin: 1.6rem auto 0;
+  padding: 1.6rem 1.8rem 1.5rem;
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
+  border: 1px solid rgba(209, 213, 219, 0.7);
+}
+
+.perfil-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.9rem;
+}
+
+.perfil-nombre {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.perfil-email {
+  margin: 0.1rem 0 0;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+.perfil-badge {
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: #ecfdf5;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.perfil-meta {
+  margin-top: 0.5rem;
+  margin-bottom: 0.9rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.4rem 1.2rem;
+  font-size: 0.9rem;
+}
+
+.perfil-meta p {
+  margin: 0;
+}
+
+.perfil-actions {
+  margin-top: 0.4rem;
+  margin-bottom: 0.8rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-secondary {
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  color: #111827;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(148, 163, 184, 0.4);
+  transition: background 0.15s ease, box-shadow 0.15s ease,
+    transform 0.08s ease;
+}
+
+.btn-secondary:hover {
+  background: #e5e7eb;
+  box-shadow: 0 5px 16px rgba(148, 163, 184, 0.5);
+  transform: translateY(-1px);
+}
+
+.btn-secondary:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(148, 163, 184, 0.4);
+}
+
+.perfil-historial-titulo {
+  margin-top: 1rem;
+  margin-bottom: 0.4rem;
+  font-size: 1rem;
+  font-weight: 600;
 }

@@ -448,8 +448,7 @@ function App() {
       return;
     }
 
-    // se tutto ok, data.user viene gestito dal listener onAuthStateChange
-    setPagina('menu');
+
   };
 
   const handleLogout = async () => {
@@ -633,70 +632,104 @@ function App() {
 
             {authLoading && <p>Comprobando sesión...</p>}
 
-            {/* Se NON c'è utente loggato → mostrar formulario de login */}
+            {/* Se NON hay usuario logueado → formulario de login */}
             {!authLoading && !authUser && (
-              <div>
-                <p>Para ver tu perfil, inicia sesión:</p>
+              <div className="login-card">
+                <h3 className="login-title">Inicia sesión para ver tu perfil</h3>
+                <p className="login-subtitle">
+                  Usa tus credenciales de Las Casitas para consultar puntos y pedidos.
+                </p>
+
                 <form onSubmit={handleLogin} className="login-form">
-                  <div>
-                    <label>Email</label>
+                  <div className="login-field">
+                    <label>Correo electrónico</label>
                     <input
                       type="email"
                       value={loginEmail}
                       onChange={(e) => setLoginEmail(e.target.value)}
+                      placeholder="ejemplo@ulpgc.es"
                       required
                     />
                   </div>
-                  <div>
+
+                  <div className="login-field">
                     <label>Contraseña</label>
                     <input
                       type="password"
                       value={loginPassword}
                       onChange={(e) => setLoginPassword(e.target.value)}
+                      placeholder="Introduce tu contraseña"
                       required
                     />
                   </div>
-                  <button type="submit">Iniciar sesión</button>
+
+                  <button type="submit" className="btn-primary">
+                    Iniciar sesión
+                  </button>
+
                   {authError && <p className="error-text">{authError}</p>}
                 </form>
               </div>
             )}
 
-            {/* Se HAY usuario logueado → mostramos perfil y puntos */}
-            {!authLoading && authUser && (
-              <>
-                <p>Sesión iniciada como <strong>{authUser.email}</strong></p>
-                <button onClick={handleLogout}>Cerrar sesión</button>
+            {/* Si HAY usuario logueado → mostramos perfil y puntos */}
+            {authUser && !cargandoPerfil && perfilUsuario && (
+              <div className="perfil-card">
+                <div className="perfil-header">
+                  <div>
+                    <h3 className="perfil-nombre">
+                      {perfilUsuario.nombre || 'Usuario'}
+                    </h3>
+                    <p className="perfil-email">
+                      {perfilUsuario.email || authUser.email}
+                    </p>
+                  </div>
+                  <span className="perfil-badge">Sesión iniciada</span>
+                </div>
 
-                {/* Aquí reutilizamos tu lógica de perfil, pero cargando con auth_id */}
-                {cargandoPerfil && <p>Cargando perfil...</p>}
+                <div className="perfil-meta">
+                  <p>
+                    <strong>Tipo:</strong>{' '}
+                    {perfilUsuario.tipo || 'estudiante'}
+                  </p>
+                  <p>
+                    <strong>Puntos acumulados:</strong> {puntosUsuario}
+                  </p>
+                </div>
 
-                {!cargandoPerfil && perfilUsuario && (
+                <div className="perfil-actions">
+                  <button className="btn-secondary" onClick={handleLogout}>
+                    Cerrar sesión
+                  </button>
+                </div>
+
+                {historialPedidos && historialPedidos.length > 0 && (
                   <>
-                    <p><strong>Nombre:</strong> {perfilUsuario.nombre}</p>
-                    <p><strong>Email:</strong> {perfilUsuario.email}</p>
-                    <p><strong>Puntos acumulados:</strong> {puntosUsuario}</p>
-
-                    <h3>Historial de pedidos</h3>
-                    {historialPedidos.length === 0 && (
-                      <p>Aún no hay pedidos registrados para este usuario.</p>
-                    )}
-                    {historialPedidos.length > 0 && (
-                      <ul className="lista-historial">
-                        {historialPedidos.map((p) => (
-                          <li key={p.id}>
-                            Pedido #{p.id} – {Number(p.total).toFixed(2)} € – Estado: {p.estado}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
+                    <h3 className="perfil-historial-titulo">
+                      Historial de pedidos
+                    </h3>
+                    <ul className="lista-historial">
+                      {historialPedidos.map((pedido) => (
+                        <li key={pedido.id}>
+                          <div>
+                            <strong>Pedido #{pedido.id}</strong> –{' '}
+                            {pedido.total.toFixed(2)} €
+                          </div>
+                          <div>
+                            <small>
+                              {/* usa el nombre de columna correcto de tu tabla,
+                                por ejemplo 'creado_en' */}
+                              {pedido.creado_en &&
+                                new Date(pedido.creado_en).toLocaleString()}{' '}
+                              • {pedido.estado}
+                            </small>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
                   </>
                 )}
-
-                {!cargandoPerfil && !perfilUsuario && (
-                  <p>No se ha encontrado el perfil en la tabla usuarios.</p>
-                )}
-              </>
+              </div>
             )}
           </section>
         )}
