@@ -1,44 +1,54 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
-import cafeImg from './images/cafe.jpg';
-import bocadilloImg from './images/bocadillo.jpg';
-import chapataImg from './images/chapata.jpg';
-import zumoImg from './images/zumo.jpg';
-import tartaImg from './images/tarta.jpg';
 import Menu from './components/Menu';
 import Footer from './components/Footer';
 import { supabase } from './supabase';
 
-// Menú de ejemplo (luego lo podéis cambiar)
-const MENU_ITEMS = [
-  { id: 1, nombre: 'Café con leche', precio: 1.20, imagen: cafeImg },
-  { id: 2, nombre: 'Bocadillo de jamón', precio: 2.80, imagen: bocadilloImg },
-  { id: 3, nombre: 'Chapata de pollo', precio: 3.20, imagen: chapataImg },
-  { id: 4, nombre: 'Zumo de naranja', precio: 1.50, imagen: zumoImg },
-  { id: 5, nombre: 'Tarta de chocolate', precio: 2.50, imagen: tartaImg },
-];
-
 function App() {
-  // Estado que indica qué sección de la app se está mostrando
-  const [pagina, setPagina] = useState('menu'); // 'menu' | 'pedido' | 'estado'
-  // Lista de productos que el usuario ha añadido al pedido actual
+  const [menuItems, setMenuItems] = useState([]);
+  const [cargandoMenu, setCargandoMenu] = useState(true);
+
+  useEffect(() => {
+    const cargarMenu = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('productos') // o 'menu_items' si la tabla se llama así
+          .select('id, nombre, precio, categoria_id, imagen_url');
+
+        if (error) {
+          console.error('Error cargando menú:', error);
+          return;
+        }
+
+        const itemsAdaptados = data.map((row) => ({
+          id: row.id,
+          nombre: row.nombre,
+          precio: row.precio,
+          imagen: row.imagen_url || null,
+          categoria_id: row.categoria_id,
+        }));
+
+        setMenuItems(itemsAdaptados);
+        setCargandoMenu(false);
+      } catch (e) {
+        console.error('Error general cargando menú:', e);
+      }
+    };
+
+    cargarMenu();
+  }, []);
+
+  const [pagina, setPagina] = useState('menu');
   const [pedido, setPedido] = useState([]);
 
-  // Añade un producto al pedido actual
   const añadirAlPedido = (item) => {
     setPedido([...pedido, item]);
   };
 
-  // Calcula el total del pedido sumando los precios de los productos
   const total = pedido.reduce((suma, item) => suma + item.precio, 0);
-
-  const vaciarPedido = () => {
-    setPedido([]);
-  };
+  const vaciarPedido = () => setPedido([]);
 
   const [estadoPedido, setEstadoPedido] = useState('sin_pedido');
-  // 'sin_pedido' | 'en_preparacion'
-
   const totalFormatted = total.toFixed(2);
 
   const USUARIO_DEMO = {
@@ -49,7 +59,6 @@ function App() {
 
   async function guardarPedidoEnSupabase(pedido, total) {
     try {
-      // 1. Upsert del usuario
       const { data: usuario, error: userError } = await supabase
         .from('usuarios')
         .upsert(USUARIO_DEMO)
@@ -61,12 +70,11 @@ function App() {
         return;
       }
 
-      // 2. Insert del pedido
       const { error: pedidoError } = await supabase.from('pedidos').insert({
         usuario_id: usuario.id,
         total,
         estado: 'en_preparacion',
-        contenido: pedido, // array de productos del pedido
+        contenido: pedido,
       });
 
       if (pedidoError) {
@@ -81,10 +89,7 @@ function App() {
   }
 
   const confirmarPedido = async () => {
-    if (pedido.length === 0) {
-      return;
-    }
-
+    if (pedido.length === 0) return;
     await guardarPedidoEnSupabase(pedido, total);
     setEstadoPedido('en_preparacion');
   };
@@ -96,7 +101,6 @@ function App() {
         <p>Cafetería universitaria Las Casitas – Prototipo</p>
       </header>
 
-      {/* NAVBAR SEMPLICE */}
       <nav className="nav">
         <button
           className={pagina === 'menu' ? 'nav-btn active' : 'nav-btn'}
@@ -120,8 +124,13 @@ function App() {
 
       <main className="contenido">
         {pagina === 'menu' && (
-          <Menu items={MENU_ITEMS} onAdd={añadirAlPedido} />
+          <Menu
+            items={menuItems}
+            cargando={cargandoMenu}
+            onAdd={añadirAlPedido}
+          />
         )}
+
         {pagina === 'pedido' && (
           <section>
             <h2>Mi pedido</h2>
@@ -158,8 +167,8 @@ function App() {
             <h2>Estado del pedido</h2>
             {estadoPedido === 'sin_pedido' && (
               <p>
-                No hay ningún pedido en preparación. Primero añade productos en el menú
-                y confirma el pedido en la sección "Mi pedido" durante la presentación.
+                No hay ningún pedido en preparación. Primero añade productos en el
+                menú y confirma el pedido en la sección "Mi pedido" durante la presentación.
               </p>
             )}
             {estadoPedido === 'en_preparacion' && (
