@@ -425,6 +425,40 @@ function App() {
             )}
           </section>
         )}
+
+        {pagina === 'perfil' && (
+          <section>
+            <h2>Mi perfil</h2>
+
+            {cargandoPerfil && <p>Cargando perfil...</p>}
+
+            {!cargandoPerfil && perfilUsuario && (
+              <>
+                <p><strong>Nombre:</strong> {perfilUsuario.nombre}</p>
+                <p><strong>Email:</strong> {perfilUsuario.email}</p>
+                <p><strong>Puntos acumulados:</strong> {puntosUsuario}</p>
+
+                <h3>Historial de pedidos</h3>
+                {historialPedidos.length === 0 && (
+                  <p>Aún no hay pedidos registrados para este usuario.</p>
+                )}
+                {historialPedidos.length > 0 && (
+                  <ul className="lista-historial">
+                    {historialPedidos.map((p) => (
+                      <li key={p.id}>
+                        Pedido #{p.id} – {Number(p.total).toFixed(2)} € – Estado: {p.estado}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </>
+            )}
+
+            {!cargandoPerfil && !perfilUsuario && (
+              <p>No se ha encontrado el usuario demo en la base de datos.</p>
+            )}
+          </section>
+        )}
       </main>
       <Footer />
     </div>
