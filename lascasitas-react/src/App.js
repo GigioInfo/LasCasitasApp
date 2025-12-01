@@ -17,6 +17,11 @@ function App() {
 
   const [ultimoPedidoId, setUltimoPedidoId] = useState(null);
 
+  const [perfilUsuario, setPerfilUsuario] = useState(null);
+  const [puntosUsuario, setPuntosUsuario] = useState(0);
+  const [historialPedidos, setHistorialPedidos] = useState([]);
+  const [cargandoPerfil, setCargandoPerfil] = useState(false);
+
   useEffect(() => {
     const cargarMenu = async () => {
       try {
