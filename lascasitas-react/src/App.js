@@ -319,24 +319,40 @@ function App() {
 
 
   const cargarPerfilUsuario = async () => {
-  setCargandoPerfil(true);
+    setCargandoPerfil(true);
     try {
-      const { data: usuario, error: userError } = await supabase
+      // 1. Buscar el usuario demo por email,
+      //    pero quedarnos solo con la última fila (id más alto)
+      const { data: usuarios, error: userError } = await supabase
         .from('usuarios')
-        .select('id, nombre, email')
+        .select('id, nombre, email, tipo')
         .eq('email', USUARIO_DEMO.email)
-        .single();
+        .order('id', { ascending: false }) // primero el más nuevo
+        .limit(1);
 
-      if (userError) throw userError;
+      if (userError) {
+        throw userError;
+      }
 
+      if (!usuarios || usuarios.length === 0) {
+        console.warn('No se encontró ningún usuario demo');
+        setPerfilUsuario(null);
+        setPuntosUsuario(0);
+        setHistorialPedidos([]);
+        setCargandoPerfil(false);
+        return;
+      }
+
+      const usuario = usuarios[0];
       setPerfilUsuario(usuario);
 
+      // 2. Leer puntos actuales de la tabla puntos_usuarios
       let puntos = 0;
       const { data: filaPuntos, error: puntosError } = await supabase
         .from('puntos_usuarios')
         .select('puntos')
         .eq('usuario_id', usuario.id)
-        .single();
+        .maybeSingle(); // puede no existir aún
 
       if (!puntosError && filaPuntos) {
         puntos = Number(filaPuntos.puntos) || 0;
@@ -344,6 +360,7 @@ function App() {
 
       setPuntosUsuario(puntos);
 
+      // 3. Historial de pedidos del usuario
       const { data: pedidosUsuario, error: pedidosError } = await supabase
         .from('pedidos')
         .select('id, total, estado')
