@@ -22,6 +22,12 @@ function App() {
   const [historialPedidos, setHistorialPedidos] = useState([]);
   const [cargandoPerfil, setCargandoPerfil] = useState(false);
 
+  const [statsPanel, setStatsPanel] = useState({
+    totalVentas: 0,
+    numPedidos: 0,
+    productoTopNombre: null,
+  });
+
   useEffect(() => {
     const cargarMenu = async () => {
       try {
