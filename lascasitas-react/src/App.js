@@ -106,7 +106,6 @@ function App() {
 
   const vaciarPedido = () => setPedido([]);
 
-  const [estadoPedido, setEstadoPedido] = useState('sin_pedido');
   const totalFormatted = total.toFixed(2);
 
   const USUARIO_DEMO = {
@@ -189,13 +188,12 @@ function App() {
 
       if (pagoError) throw pagoError;
 
-      // 6. Puntos (1 punto ogni 2 €)
+      // 6. Puntos (1 cada 2 €)
       const puntosGanados = Math.floor(Number(total) / 2);
 
       if (puntosGanados > 0) {
         let puntosPrevios = 0;
 
-        // meglio usare maybeSingle così NON va in errore se la riga non esiste ancora
         const { data: filaPuntos, error: puntosSelectError } = await supabase
           .from('puntos_usuarios')
           .select('puntos')
@@ -231,13 +229,12 @@ function App() {
     const idPedido = await guardarPedidoEnSupabase(pedido, total);
     if (!idPedido) return;
 
-    // nuovo pedido: aggiorniamo SUBITO lo stato mostrato nella página "Estado"
+  
     setUltimoPedidoId(idPedido);
-    setEstadoRemoto('en_preparacion');  // mostra subito EN PREPARACIÓN per questo pedido
-    setCargandoEstado(false);           // assicuriamoci che non sia in "loading"
+    setEstadoRemoto('en_preparacion'); 
+    setCargandoEstado(false); 
 
-    // (este estadoPedido realmente casi no lo usas, pero lo dejamos por coherencia)
-    setEstadoPedido('en_preparacion');
+  
 
     setPagina('estado');
     vaciarPedido();
@@ -440,7 +437,7 @@ function App() {
     e.preventDefault();
     setAuthError(null);
 
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { error } = await supabase.auth.signInWithPassword({
       email: loginEmail,
       password: loginPassword,
     });
