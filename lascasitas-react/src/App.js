@@ -317,7 +317,7 @@ function App() {
 
 
 
-  
+
   const cargarPerfilUsuario = async () => {
   setCargandoPerfil(true);
     try {
@@ -484,7 +484,15 @@ function App() {
         {pagina === 'panel' && (
           <section>
             <h2>Panel interno – Pedidos</h2>
-            <button onClick={cargarPedidosPanel}>Actualizar lista</button>
+
+            <button
+              onClick={() => {
+                cargarPedidosPanel();
+                cargarEstadisticasPanel();
+              }}
+            >
+              Actualizar lista
+            </button>
 
             {cargandoPanel && <p>Cargando pedidos...</p>}
 
