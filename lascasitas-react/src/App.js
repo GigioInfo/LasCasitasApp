@@ -500,6 +500,15 @@ function App() {
               <p>No hay pedidos registrados.</p>
             )}
 
+            <div className="panel-dashboard">
+              <h3>Resumen de ventas</h3>
+              <p>Ventas totales registradas: {statsPanel.totalVentas.toFixed(2)} €</p>
+              <p>Número de pedidos: {statsPanel.numPedidos}</p>
+              {statsPanel.productoTopNombre && (
+                <p>Producto más pedido: {statsPanel.productoTopNombre}</p>
+              )}
+            </div>
+
             {!cargandoPanel && pedidosPanel.length > 0 && (
               <ul className="lista-pedidos-panel">
                 {pedidosPanel.map((p) => (
