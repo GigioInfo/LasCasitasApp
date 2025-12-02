@@ -440,6 +440,7 @@ function App() {
 
 
 
+
   useEffect(() => {
     if (authUser) {
       cargarPerfilUsuario();
@@ -449,6 +450,11 @@ function App() {
       setHistorialPedidos([]);
     }
   }, [authUser, cargarPerfilUsuario]);
+
+  useEffect(() => {
+    // Cuando cambiamos de usuario (o cerramos sesión), vaciamos el carrito
+    setPedido([]);
+  }, [authUser]);
 
 
 
