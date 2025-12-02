@@ -37,6 +37,12 @@ function App() {
 
   const [tienePedidosListos, setTienePedidosListos] = useState(false);
 
+  // Metodo de pago preferido del usuario (para simulación de pagos)
+  const [metodoPago, setMetodoPago] = useState('caja_efectivo'); 
+  // 'caja_efectivo' | 'caja_tarjeta' | 'monedero_ulpgc'
+
+  const [mensajePago, setMensajePago] = useState('');
+
   const esStaff = perfilUsuario?.tipo === 'staff';
 
   const [statsPanel, setStatsPanel] = useState({
@@ -101,6 +107,7 @@ function App() {
 
 
   const añadirAlPedido = (item) => {
+    setMensajePago('');
     setPedido([...pedido, item]);
   };
 
@@ -115,12 +122,15 @@ function App() {
 
   const total = Math.round(totalBruto * 100) / 100;
 
-  const vaciarPedido = () => setPedido([]);
+  const vaciarPedido = () => {
+    setPedido([]);
+    setMensajePago('');
+  };
 
   const totalFormatted = total.toFixed(2);
 
 
-  async function guardarPedidoEnSupabase(pedido, total) {
+  async function guardarPedidoEnSupabase(pedido, total, metodoPagoActual) {
     try {
       if (!authUser) {
         console.warn('Intento de guardar un pedido sin usuario autenticado');
@@ -169,9 +179,14 @@ function App() {
       if (lineasError) throw lineasError;
 
       // 5. Registrar pago simulado
+      // traducimos el valor técnico a un texto más "bonito" para la BD
+      let metodoTexto = 'caja_efectivo';
+      if (metodoPagoActual === 'caja_tarjeta') metodoTexto = 'caja_tarjeta';
+      if (metodoPagoActual === 'monedero_ulpgc') metodoTexto = 'monedero_ulpgc';
+
       const { error: pagoError } = await supabase.from('pagos').insert({
         pedido_id: nuevoPedido.id,
-        metodo: 'tarjeta',
+        metodo: metodoTexto,
         importe: total,
         fecha_pago: new Date().toISOString(),
         estado: 'confirmado',
@@ -221,10 +236,24 @@ function App() {
       setPagina('perfil');
       return;
     }
-    const idPedido = await guardarPedidoEnSupabase(pedido, total);
+    const idPedido = await guardarPedidoEnSupabase(pedido, total, metodoPago);
     if (!idPedido) return;
-    vaciarPedido();
-    setPagina('perfil');
+
+    // Mensaje de simulación del pago según el método seleccionado
+    let textoMetodo;
+    if (metodoPago === 'caja_efectivo') {
+      textoMetodo = 'Paga en caja al recoger tu pedido.';
+    } else if (metodoPago === 'caja_tarjeta') {
+      textoMetodo = 'Pedido pagado con tarjeta.';
+    } else if (metodoPago === 'monedero_ulpgc') {
+      textoMetodo = 'Pedido pagado con monedero digital ULPGC.';
+    } else {
+      textoMetodo = 'Pedido confirmado.';
+    }
+
+    setMensajePago(textoMetodo);
+    // Vaciamos el carrito pero nos quedamos en la página "Mi pedido"
+    setPedido([]);
   };
 
 
@@ -357,10 +386,10 @@ function App() {
       // 1. Buscar perfil en 'usuarios' por auth_id
       const { data: usuario, error: userError } = await supabase
         .from('usuarios')
-        .select('id, nombre, email, tipo, miembro_ulpgc')
+        .select('id, nombre, email, tipo, miembro_ulpgc, metodo_pago_preferido')
         .eq('auth_id', authUser.id)
-        .maybeSingle();          // 👈 cambio importante
-
+        .maybeSingle();
+      
       // Si hay error real en la query
       if (userError) {
         console.error('Error leyendo perfil de usuarios:', userError);
@@ -386,6 +415,13 @@ function App() {
 
       // Tenemos perfil correcto
       setPerfilUsuario(usuario);
+
+      // Si el usuario tiene un método de pago guardado, lo usamos; si no, valor por defecto
+      if (usuario.metodo_pago_preferido) {
+        setMetodoPago(usuario.metodo_pago_preferido);
+      } else {
+        setMetodoPago('caja_efectivo');
+      }
 
       // 2. Leer puntos de puntos_usuarios
       let puntos = 0;
@@ -448,6 +484,11 @@ function App() {
 
 
   useEffect(() => {
+    setMensajePago('');
+  }, [pagina, authUser]);
+
+
+  useEffect(() => {
     if (pagina !== 'perfil') return;
 
     cargarPerfilUsuario();
@@ -470,6 +511,29 @@ function App() {
     // Cuando cambiamos de usuario (o cerramos sesión), vaciamos el carrito
     setPedido([]);
   }, [authUser]);
+
+
+
+
+
+  const actualizarMetodoPago = async (nuevoMetodo) => {
+    setMetodoPago(nuevoMetodo);
+
+    // Si quieres que quede guardado en la BD:
+    if (!perfilUsuario) return;
+
+    const { error } = await supabase
+      .from('usuarios')
+      .update({ metodo_pago_preferido: nuevoMetodo })
+      .eq('id', perfilUsuario.id);
+
+    if (error) {
+      console.error('Error actualizando método de pago preferido:', error);
+    }
+  };
+
+
+
 
 
 
@@ -628,6 +692,12 @@ function App() {
                   </>
                 )}
               </>
+            )}
+
+            {mensajePago && (
+              <p className="mensaje-pago-ok">
+                {mensajePago}
+              </p>
             )}
           </section>
         )}
@@ -876,19 +946,19 @@ function App() {
                   <span className="perfil-badge">Sesión iniciada</span>
                 </div>
 
-                <div className="perfil-meta">
-                  <p>
-                    <strong>Tipo:</strong>{' '}
-                    {perfilUsuario.tipo === 'staff'
-                      ? 'personal Las Casitas'
-                      : `cliente${perfilUsuario.miembro_ulpgc ? ' – miembro ULPGC' : ''}`}
-                  </p>
-                  {perfilUsuario.tipo !== 'staff' && (
-                    <p>
-                      <strong>Puntos acumulados:</strong> {puntosUsuario}
-                    </p>
-                  )}
-                </div>
+                    <div className="perfil-meta">
+                      <p>
+                        <strong>Tipo:</strong>{' '}
+                        {perfilUsuario.tipo === 'staff'
+                          ? 'personal Las Casitas'
+                          : `cliente${perfilUsuario.miembro_ulpgc ? ' – miembro ULPGC' : ''}`}
+                      </p>
+                      {perfilUsuario.tipo !== 'staff' && (
+                        <p>
+                          <strong>Puntos acumulados:</strong> {puntosUsuario}
+                        </p>
+                      )}
+                    </div>
 
                 <div className="perfil-actions">
                   <button className="btn-secondary" onClick={handleLogout}>
@@ -936,6 +1006,61 @@ function App() {
                 )}
               </div>
             )}
+
+            {/* Card separata per la simulación de pagos */}
+            {authUser && !cargandoPerfil && perfilUsuario && perfilUsuario.tipo !== 'staff' && (
+              <div className="perfil-card perfil-card-secundaria">
+                <h3 className="perfil-historial-titulo">Método de pago preferido</h3>
+                <p className="perfil-metodo-sub">
+                  Elige cómo prefieres pagar tus pedidos.
+                </p>
+
+                <div className="metodo-pago-opciones">
+                  <label className="metodo-pago-opcion">
+                    <input
+                      type="radio"
+                      name="metodoPago"
+                      value="caja_efectivo"
+                      checked={metodoPago === 'caja_efectivo'}
+                      onChange={() => actualizarMetodoPago('caja_efectivo')}
+                    />
+                    <span>Pagar en caja (efectivo)</span>
+                  </label>
+
+                  <label className="metodo-pago-opcion">
+                    <input
+                      type="radio"
+                      name="metodoPago"
+                      value="caja_tarjeta"
+                      checked={metodoPago === 'caja_tarjeta'}
+                      onChange={() => actualizarMetodoPago('caja_tarjeta')}
+                    />
+                    <span>Pagar en caja (tarjeta)</span>
+                  </label>
+
+                  <label
+                    className={
+                      'metodo-pago-opcion' +
+                      (!perfilUsuario.miembro_ulpgc ? ' metodo-pago-opcion-disabled' : '')
+                    }
+                  >
+                    <input
+                      type="radio"
+                      name="metodoPago"
+                      value="monedero_ulpgc"
+                      checked={metodoPago === 'monedero_ulpgc'}
+                      onChange={() => actualizarMetodoPago('monedero_ulpgc')}
+                      disabled={!perfilUsuario.miembro_ulpgc}
+                    />
+                    <span>
+                      Monedero digital ULPGC
+                      {!perfilUsuario.miembro_ulpgc && ' (solo para miembros ULPGC)'}
+                    </span>
+                  </label>
+                </div>
+              </div>
+            )}
+
             {/* Caso raro: hay usuario autenticado pero no se ha encontrado su fila en public.usuarios */}
             {authUser && !cargandoPerfil && !perfilUsuario && (
               <div className="perfil-card">
