@@ -32,6 +32,8 @@ function App() {
   const [pagina, setPagina] = useState('menu');
   const [pedido, setPedido] = useState([]);
 
+  const esStaff = perfilUsuario?.tipo === 'staff';
+
   const [statsPanel, setStatsPanel] = useState({
     totalVentas: 0,
     numPedidos: 0,
@@ -438,6 +440,18 @@ function App() {
 
     cargarPerfilUsuario();
   }, [pagina, cargarPerfilUsuario]);
+
+  
+
+  useEffect(() => {
+  if (authUser) {
+    cargarPerfilUsuario();
+  } else {
+    setPerfilUsuario(null);
+    setPuntosUsuario(0);
+    setHistorialPedidos([]);
+  }
+}, [authUser]);
 
 
 
