@@ -742,3 +742,107 @@ section p strong {
 .metodo-pago-opcion-disabled {
   opacity: 0.5;
 }
+
+
+/* Card grande del panel interno */
+.panel-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 24px 32px 28px;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+}
+
+/* Titolo del panel */
+.panel-title {
+  margin: 0 0 16px;
+  font-size: 1.5rem;
+}
+
+/* Sottotitolo per staff (senza tabs) */
+.panel-subtitle {
+  margin: 0 0 20px;
+  color: #4b5563;
+}
+
+/* Contenitore dei tab grandi Pedidos / Menú */
+.panel-tabs-main {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+/* Bottoni verdi tipo "pill" (stesso verde che usi già nel panel) */
+/* Bottoni verdi tipo "pill" (stesso verde che usi già nel panel) */
+.panel-tab {
+  min-width: 160px;
+  padding: 0.7rem 1.6rem;
+  border-radius: 999px;
+  border: 1px solid #d1d5db;
+  cursor: pointer;
+  background: #f9fafb;        /* bianco molto chiaro */
+  color: #111827;             /* nero/grigio molto scuro per il testo */
+  font-weight: 500;
+  box-shadow: 0 2px 5px rgba(15, 23, 42, 0.06);
+  transition: background 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease,
+    color 0.15s ease, border-color 0.15s ease;
+}
+
+.panel-tab:hover {
+  background: #e5e7eb;        /* grigio chiaro al passaggio */
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.1);
+}
+
+/* Stato attivo: tab scura */
+.panel-tab.active {
+  background: #111827;       /* quasi nero */
+  color: #ffffff;            /* testo bianco */
+  border-color: #111827;
+}
+
+/* Bottone "Actualizar lista" un po' più carino dentro il panel */
+.btn-actualizar-panel {
+  margin-bottom: 16px;
+  padding: 0.5rem 1.2rem;
+  border-radius: 999px;
+  border: none;
+  background: #0f766e;
+  color: #ffffff;
+  cursor: pointer;
+  font-size: 0.9rem;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.15);
+}
+
+.btn-actualizar-panel:hover {
+  background: #0d6a62;
+}
+
+
+
+/* Prodotti nascosti nel panel del cocinero */
+.menu-card-oculto {
+  background: #f3f4f6;              /* grigio chiaro */
+  border: 1px dashed #9ca3af;       /* bordo tratteggiato grigio */
+  opacity: 0.8;
+}
+
+.menu-card-oculto .menu-img {
+  filter: grayscale(100%);          /* immagine in bianco e nero */
+  opacity: 0.85;
+}
+
+.menu-card-oculto .menu-title,
+.menu-card-oculto .menu-price {
+  color: #6b7280;                   /* testo grigio */
+}
+
+.badge-oculto {
+  margin: 0.4rem 0 0.5rem;
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  background: #e5e7eb;
+  color: #4b5563;
+}

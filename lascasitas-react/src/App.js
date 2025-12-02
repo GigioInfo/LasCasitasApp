@@ -53,34 +53,61 @@ function App() {
     numPedidos: 0,
     productoTopNombre: null,
   });
+  const [panelTab, setPanelTab] = useState('pedidos'); // 'pedidos' | 'menu' (solo cocinero)
 
-  useEffect(() => {
-    const cargarMenu = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('productos') // o 'menu_items' si la tabla se llama así
-          .select('id, nombre, precio, categoria_id, imagen_url');
+  
+  const cargarMenu = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('productos')
+        .select('id, nombre, precio, categoria_id, imagen_url, visible_cliente');
 
-        if (error) {
-          console.error('Error cargando menú:', error);
-          return;
-        }
-
-        const itemsAdaptados = data.map((row) => ({
-          id: row.id,
-          nombre: row.nombre,
-          precio: Number(row.precio),
-          imagen: row.imagen_url || null,
-          categoria_id: row.categoria_id,
-        }));
-
-        setMenuItems(itemsAdaptados);
-        setCargandoMenu(false);
-      } catch (e) {
-        console.error('Error general cargando menú:', e);
+      if (error) {
+        console.error('Error cargando menú:', error);
+        return;
       }
-    };
 
+      const itemsAdaptados = data.map((row) => ({
+        id: row.id,
+        nombre: row.nombre,
+        precio: Number(row.precio),
+        imagen: row.imagen_url || null,
+        categoria_id: row.categoria_id,
+        visible_cliente: row.visible_cliente, // 👈 nuovo campo
+      }));
+
+      setMenuItems(itemsAdaptados);
+      setCargandoMenu(false);
+    } catch (e) {
+      console.error('Error general cargando menú:', e);
+    }
+  };
+
+  const alternarVisibilidadProducto = async (producto) => {
+    const nuevoVisible = producto.visible_cliente === false ? true : false;
+
+    const mensaje = nuevoVisible
+      ? '¿Quieres volver a mostrar este producto en el menú general?'
+      : '¿Seguro que quieres ocultar este producto del menú general?';
+
+    const confirmar = window.confirm(mensaje);
+    if (!confirmar) return;
+
+    const { error } = await supabase
+      .from('productos')
+      .update({ visible_cliente: nuevoVisible })
+      .eq('id', producto.id);
+
+    if (error) {
+      console.error('Error actualizando visibilidad del producto:', error);
+      return;
+    }
+
+    // Ricarica il menu in app (clienti + panel)
+    cargarMenu();
+  };
+  
+  useEffect(() => {
     cargarMenu();
   }, []);
 
@@ -664,7 +691,7 @@ function App() {
       <main className="contenido">
         {pagina === 'menu' && (
           <Menu
-            items={menuItems}
+            items={menuItems.filter((item) => item.visible_cliente !== false)}
             cargando={cargandoMenu}
             onAdd={añadirAlPedido}
           />
@@ -741,66 +768,175 @@ function App() {
 
             {authUser && tieneRolPanel && (
               <section>
-                <h2>Panel interno – Pedidos</h2>
+                <div className="panel-card">
+                  {/* Titolo generale */}
+                  <h2 className="panel-title">Panel interno</h2>
 
-                <button
-                  onClick={() => {
-                    cargarPedidosPanel();
-                    if (esStaff) {
-                      cargarEstadisticasPanel();
-                    }
-                  }}
-                >
-                  Actualizar lista
-                </button>
+                  {/* Toggle grande Pedidos / Menú (solo cocinero) */}
+                  {esCocinero && (
+                    <div className="panel-tabs-main">
+                      <button
+                        type="button"
+                        className={panelTab === 'pedidos' ? 'panel-tab active' : 'panel-tab'}
+                        onClick={() => setPanelTab('pedidos')}
+                      >
+                        Pedidos
+                      </button>
+                      <button
+                        type="button"
+                        className={panelTab === 'menu' ? 'panel-tab active' : 'panel-tab'}
+                        onClick={() => setPanelTab('menu')}
+                      >
+                        Menú
+                      </button>
+                    </div>
+                  )}
 
-                {cargandoPanel && <p>Cargando pedidos...</p>}
+                  {/* STAFF (solo pedidos, niente tab) */}
+                  {!esCocinero && (
+                    <p className="panel-subtitle">
+                      Gestión de pedidos del día.
+                    </p>
+                  )}
 
-                {!cargandoPanel && pedidosPanel.length === 0 && (
-                  <p>No hay pedidos registrados.</p>
-                )}
+                  {/* VISTA DE PEDIDOS (staff y cocinero) */}
+                  {(!esCocinero || panelTab === 'pedidos') && (
+                    <>
+                      <button
+                        className="btn-actualizar-panel"
+                        onClick={() => {
+                          cargarPedidosPanel();
+                          if (esStaff) {
+                            cargarEstadisticasPanel();
+                          }
+                        }}
+                      >
+                        Actualizar lista
+                      </button>
 
-                {esStaff && (
-                  <div className="panel-dashboard">
-                    <h3>Resumen de ventas</h3>
-                    <p>Ventas totales registradas: {statsPanel.totalVentas.toFixed(2)} €</p>
-                    <p>Número de pedidos: {statsPanel.numPedidos}</p>
-                    {statsPanel.productoTopNombre && (
-                      <p>Producto más pedido: {statsPanel.productoTopNombre}</p>
-                    )}
-                  </div>
-                )}
+                      {cargandoPanel && <p>Cargando pedidos...</p>}
 
-                {!cargandoPanel && pedidosPanel.length > 0 && (
-                  <ul className="lista-pedidos-panel">
-                    {pedidosPanel.map((p) => {
-                      const puedeMarcarListo =
-                        esCocinero && p.estado === 'en_preparacion';
-                      const puedeMarcarRecogido =
-                        esStaff && p.estado === 'listo';
+                      {!cargandoPanel && pedidosPanel.length === 0 && (
+                        <p>No hay pedidos registrados.</p>
+                      )}
 
-                      return (
-                        <li key={p.id}>
-                          <div>
-                            <strong>Pedido #{p.id}</strong> – {p.total.toFixed(2)} € – Estado: {p.estado}
-                          </div>
-                          <div className="panel-actions">
-                            {puedeMarcarListo && (
-                              <button onClick={() => actualizarEstadoPedidoPanel(p.id, 'listo')}>
-                                Marcar como listo
+                      {esStaff && (
+                        <div className="panel-dashboard">
+                          <h3>Resumen de ventas</h3>
+                          <p>
+                            Ventas totales registradas:{' '}
+                            {statsPanel.totalVentas.toFixed(2)} €
+                          </p>
+                          <p>Número de pedidos: {statsPanel.numPedidos}</p>
+                          {statsPanel.productoTopNombre && (
+                            <p>Producto más pedido: {statsPanel.productoTopNombre}</p>
+                          )}
+                        </div>
+                      )}
+
+                      {!cargandoPanel && pedidosPanel.length > 0 && (
+                        <ul className="lista-pedidos-panel">
+                          {pedidosPanel.map((p) => {
+                            const puedeMarcarListo =
+                              esCocinero && p.estado === 'en_preparacion';
+                            const puedeMarcarRecogido =
+                              esStaff && p.estado === 'listo';
+
+                            return (
+                              <li key={p.id}>
+                                <div>
+                                  <strong>Pedido #{p.id}</strong> –{' '}
+                                  {p.total.toFixed(2)} € – Estado: {p.estado}
+                                </div>
+                                <div className="panel-actions">
+                                  {puedeMarcarListo && (
+                                    <button
+                                      onClick={() =>
+                                        actualizarEstadoPedidoPanel(p.id, 'listo')
+                                      }
+                                    >
+                                      Marcar como listo
+                                    </button>
+                                  )}
+                                  {puedeMarcarRecogido && (
+                                    <button
+                                      onClick={() =>
+                                        actualizarEstadoPedidoPanel(p.id, 'recogido')
+                                      }
+                                    >
+                                      Marcar como recogido
+                                      </button>
+                                  )}
+                                </div>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      )}
+                    </>
+                  )}
+
+                  {/* VISTA DE MENÚ (vacía por ahora) */}
+                  {esCocinero && panelTab === 'menu' && (
+                    <div className="panel-menu-admin">
+                      <h3>Menú actual</h3>
+                      <p
+                        style={{
+                          fontSize: '0.9rem',
+                          color: '#4b5563',
+                          marginBottom: '0.75rem',
+                        }}
+                      >
+                        Vista del menú tal y como lo ve un cliente, pero aquí puedes ocultar o mostrar productos.
+                      </p>
+
+                      {cargandoMenu ? (
+                        <p>Cargando menú…</p>
+                      ) : menuItems.length === 0 ? (
+                        <p>No hay productos en el menú.</p>
+                      ) : (
+                        <div className="menu-grid">
+                          {menuItems.map((item) => (
+                            <div
+                              key={item.id}
+                              className={
+                                item.visible_cliente === false
+                                  ? 'menu-card menu-card-oculto'
+                                  : 'menu-card'
+                              }
+                            >
+                              {item.imagen && (
+                                <img
+                                  src={item.imagen}
+                                  alt={item.nombre}
+                                  className="menu-img"
+                                />
+                              )}
+                              <h3 className="menu-title">{item.nombre}</h3>
+                              <p className="menu-price">{item.precio.toFixed(2)} €</p>
+
+                              {item.visible_cliente === false && (
+                                <p className="badge-oculto">
+                                  Oculto en el menú de clientes
+                                </p>
+                              )}
+
+                              <button
+                                type="button"
+                                className="btn-eliminar-linea"
+                                onClick={() => alternarVisibilidadProducto(item)}
+                              >
+                                {item.visible_cliente === false
+                                  ? 'Mostrar en menú'
+                                  : 'Quitar del menú'}
                               </button>
-                            )}
-                            {puedeMarcarRecogido && (
-                              <button onClick={() => actualizarEstadoPedidoPanel(p.id, 'recogido')}>
-                                Marcar como recogido
-                              </button>
-                            )}
-                          </div>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </section>
             )}
           </>
