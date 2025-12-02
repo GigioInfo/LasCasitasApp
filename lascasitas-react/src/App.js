@@ -118,46 +118,26 @@ function App() {
 
   const totalFormatted = total.toFixed(2);
 
-  const USUARIO_DEMO = {
-    nombre: 'Alumno demo',
-    email: 'demo@ulpgc.es',
-    tipo: 'estudiante',
-  };
 
   async function guardarPedidoEnSupabase(pedido, total) {
     try {
-      let usuario;
-
-      // 1. Se c'è un utente autenticato, usiamo auth_id
-      if (authUser) {
-        const { data, error } = await supabase
-          .from('usuarios')
-          .select('id, nombre, email, tipo')
-          .eq('auth_id', authUser.id)
-          .single();
-
-        if (error) {
-          console.error('No se ha encontrado perfil para el usuario autenticado:', error);
-          return null;
-        }
-
-        usuario = data;
-      } else {
-        // 2. Fallback: utente demo (come prima)
-        const { data: usuarios, error: userError } = await supabase
-          .from('usuarios')
-          .select('id, nombre, email, tipo, auth_id')
-          .eq('email', USUARIO_DEMO.email)
-          .order('id', { ascending: false })
-          .limit(1);
-
-        if (userError || !usuarios || usuarios.length === 0) {
-          console.error('No se ha encontrado el usuario demo en usuarios:', userError);
-          return null;
-        }
-
-        usuario = usuarios[0];
+      if (!authUser) {
+        console.warn('Intento de guardar un pedido sin usuario autenticado');
+        return null;
       }
+      let usuario;
+      const { data, error } = await supabase
+        .from('usuarios')
+        .select('id, nombre, email, tipo')
+        .eq('auth_id', authUser.id)
+        .single();
+
+      if (error) {
+        console.error('No se ha encontrado perfil para el usuario autenticado:', error);
+        return null;
+      }
+
+      usuario = data;
 
       // 3. Crear pedido
       const { data: nuevoPedido, error: pedidoError } = await supabase
@@ -235,10 +215,13 @@ function App() {
 
   const confirmarPedido = async () => {
     if (pedido.length === 0) return;
-
+    if (!authUser) {
+      setAuthError('Debes iniciar sesión o crear una cuenta antes de confirmar el pedido.');
+      setPagina('perfil');
+      return;
+    }
     const idPedido = await guardarPedidoEnSupabase(pedido, total);
     if (!idPedido) return;
-
     vaciarPedido();
     setPagina('perfil');
   };
@@ -597,12 +580,19 @@ function App() {
                 </p>
                 <button onClick={vaciarPedido}>Vaciar pedido</button>
                 {pedido.length > 0 && (
-                  <button
-                    style={{ marginLeft: '0.5rem' }}
-                    onClick={confirmarPedido}
-                  >
-                    Confirmar pedido
-                  </button>
+                  <>
+                    <button
+                      style={{ marginLeft: '0.5rem' }}
+                      onClick={confirmarPedido}
+                    >
+                      Confirmar pedido
+                    </button>
+                    {!authUser && (
+                      <p className="texto-aviso-auth">
+                        Para confirmar el pedido debes iniciar sesión o crear una cuenta.
+                      </p>
+                    )}
+                  </>
                 )}
               </>
             )}
