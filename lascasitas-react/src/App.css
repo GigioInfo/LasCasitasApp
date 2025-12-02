@@ -879,3 +879,154 @@ section p strong {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12);
 }
+
+/* ==== FORM NUOVO PRODOTTO (panel cocinero) ==== */
+
+.panel-menu-form {
+  margin-top: 1.5rem;
+  padding: 1.4rem 1.6rem;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+}
+
+.panel-menu-row {
+  display: flex;
+  gap: 1.4rem;
+  margin-bottom: 1rem;
+}
+
+.panel-menu-field {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.panel-menu-field label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.35rem;
+}
+
+.panel-menu-field input {
+  padding: 0.65rem 0.9rem;
+  border-radius: 12px;
+  border: 1px solid #cbd5e1;
+  background: #f9fafb;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.panel-menu-field input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+}
+
+/* pulsanti */
+.panel-menu-form .btn-primary,
+.panel-menu-form .btn-secondary {
+  border-radius: 999px;
+  padding: 0.6rem 1.3rem;
+}
+
+
+
+/* ----- Card menu per panel cocinero ----- */
+
+.menu-card-body {
+  padding: 0.9rem 0.9rem 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.menu-card-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.menu-card-main .menu-title {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.menu-card-main .menu-price {
+  margin: 0;
+  font-weight: 600;
+}
+
+/* Prodotto nascosto: tutto un po' grigio */
+
+.menu-card-oculto {
+  opacity: 0.55;
+  filter: grayscale(0.15);
+}
+
+.menu-card-oculto .menu-title {
+  color: #6b7280;
+}
+
+.menu-card-oculto .menu-price {
+  color: #9ca3af;
+}
+
+/* ----- Bottone toggle mostrar/ocultar ----- */
+
+.toggle-menu-btn {
+  align-self: flex-start;
+  margin-top: 0.3rem;
+  padding: 0.35rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: #374151;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.08s ease;
+}
+
+.toggle-menu-btn:hover {
+  background: #eef2ff;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.12);
+}
+
+.toggle-menu-btn .toggle-icon {
+  font-size: 1rem;
+}
+
+/* Varianti colore */
+
+.toggle-menu-btn.toggle-ocultar {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+
+.toggle-menu-btn.toggle-ocultar:hover {
+  background: #fee2e2;
+}
+
+.toggle-menu-btn.toggle-mostrar {
+  background: #ecfdf5;
+  border-color: #bbf7d0;
+  color: #166534;
+}
+
+.toggle-menu-btn.toggle-mostrar:hover {
+  background: #dcfce7;
+}

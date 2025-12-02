@@ -926,7 +926,7 @@ function App() {
                     </>
                   )}
 
-                  {/* VISTA DE MENÚ (vacía por ahora) */}
+                  {/* VISTA DE MENÚ */}
                   {esCocinero && panelTab === 'menu' && (
                     <div className="panel-menu-admin">
                       <h3>Menú actual</h3>
@@ -947,7 +947,7 @@ function App() {
                         <p>No hay productos en el menú.</p>
                       ) : (
                         <div className="menu-grid">
-                          {/* Card “aggiungi prodotto” */}
+                          {/* Card “añadir producto” */}
                           <div
                             className="menu-card menu-card-add"
                             onClick={() => setMostrarFormularioNuevo(true)}
@@ -957,47 +957,66 @@ function App() {
                             <p className="menu-price">Crear un nuevo elemento del menú</p>
                           </div>
 
-                          {/* Card normali / grigie per prodotti */}
-                          {menuItems.map((item) => (
-                            <div
-                              key={item.id}
-                              className={
-                                item.visible_cliente === false
-                                  ? 'menu-card menu-card-oculto'
-                                  : 'menu-card'
-                              }
-                            >
-                              {item.imagen && (
-                                <img
-                                  src={item.imagen}
-                                  alt={item.nombre}
-                                  className="menu-img"
-                                />
-                              )}
-                              <h3 className="menu-title">{item.nombre}</h3>
-                              <p className="menu-price">{item.precio.toFixed(2)} €</p>
-
-                              {item.visible_cliente === false && (
-                                <p className="badge-oculto">
-                                  Oculto en el menú de clientes
-                                </p>
-                              )}
-
-                              <button
-                                type="button"
-                                className="btn-eliminar-linea"
-                                onClick={() => alternarVisibilidadProducto(item)}
+                          {/* Productos: visibles arriba, ocultos abajo */}
+                          {[...menuItems]
+                            .sort(
+                              (a, b) =>
+                                Number(b.visible_cliente !== false) -
+                                Number(a.visible_cliente !== false)
+                            )
+                            .map((item) => (
+                              <div
+                                key={item.id}
+                                className={
+                                  item.visible_cliente === false
+                                    ? 'menu-card menu-card-oculto'
+                                    : 'menu-card'
+                                }
                               >
-                                {item.visible_cliente === false
-                                  ? 'Mostrar en menú'
-                                  : 'Quitar del menú'}
-                              </button>
-                            </div>
-                          ))}
+                                {item.imagen && (
+                                  <img
+                                    src={item.imagen}
+                                    alt={item.nombre}
+                                    className="menu-img"
+                                  />
+                                )}
+
+                                <div className="menu-card-body">
+                                  <div className="menu-card-main">
+                                    <h3 className="menu-title">{item.nombre}</h3>
+                                    <p className="menu-price">{item.precio.toFixed(2)} €</p>
+                                  </div>
+
+                                  {item.visible_cliente === false && (
+                                    <p className="badge-oculto">Oculto en el menú de clientes</p>
+                                  )}
+
+                                  <button
+                                    type="button"
+                                    className={
+                                      'toggle-menu-btn ' +
+                                      (item.visible_cliente === false
+                                        ? 'toggle-mostrar'
+                                        : 'toggle-ocultar')
+                                    }
+                                    onClick={() => alternarVisibilidadProducto(item)}
+                                  >
+                                    <span className="toggle-icon">
+                                      {item.visible_cliente === false ? '➕' : '👁‍🗨'}
+                                    </span>
+                                    <span>
+                                      {item.visible_cliente === false
+                                        ? 'Mostrar en menú'
+                                        : 'Ocultar del menú'}
+                                    </span>
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
                         </div>
                       )}
 
-                      {/* Form per creare un nuovo prodotto (compare solo se clicchi la card “+”) */}
+                      {/* Form para crear un nuevo producto (solo si pulsas la card “+”) */}
                       {mostrarFormularioNuevo && (
                         <form className="panel-menu-form" onSubmit={handleCrearProducto}>
                           <h4 style={{ marginTop: '1.5rem', marginBottom: '0.75rem' }}>
@@ -1046,7 +1065,13 @@ function App() {
                             </div>
                           </div>
 
-                          <div style={{ marginTop: '0.6rem', display: 'flex', gap: '0.5rem' }}>
+                          <div
+                            style={{
+                              marginTop: '0.6rem',
+                              display: 'flex',
+                              gap: '0.5rem',
+                            }}
+                          >
                             <button type="submit" className="btn-primary">
                               Guardar producto
                             </button>
