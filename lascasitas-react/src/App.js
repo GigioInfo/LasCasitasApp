@@ -36,6 +36,7 @@ function App() {
   const [regMiembro, setRegMiembro] = useState(false);
 
   const [tienePedidosListos, setTienePedidosListos] = useState(false);
+  const [tienePedidosListosStaff, setTienePedidosListosStaff] = useState(false);
 
   // Metodo de pago preferido del usuario (para simulación de pagos)
   const [metodoPago, setMetodoPago] = useState('caja_efectivo'); 
@@ -44,6 +45,8 @@ function App() {
   const [mensajePago, setMensajePago] = useState('');
 
   const esStaff = perfilUsuario?.tipo === 'staff';
+  const esCocinero = perfilUsuario?.tipo === 'cocinero';
+  const tieneRolPanel = esStaff || esCocinero;
 
   const [statsPanel, setStatsPanel] = useState({
     totalVentas: 0,
@@ -377,6 +380,7 @@ function App() {
       setPuntosUsuario(0);
       setHistorialPedidos([]);
       setTienePedidosListos(false);
+      setTienePedidosListosStaff(false);
       return;
     }
 
@@ -415,6 +419,23 @@ function App() {
 
       // Tenemos perfil correcto
       setPerfilUsuario(usuario);
+
+      // Si es staff, comprobamos si hay pedidos "listo" para recoger
+      if (usuario.tipo === 'staff') {
+        const { data: pedidosListos, error: listosError } = await supabase
+          .from('pedidos')
+          .select('id')
+          .eq('estado', 'listo')
+          .limit(1);
+
+        if (!listosError && pedidosListos && pedidosListos.length > 0) {
+          setTienePedidosListosStaff(true);
+        } else {
+          setTienePedidosListosStaff(false);
+        }
+      } else {
+        setTienePedidosListosStaff(false);
+      }
 
       // Si el usuario tiene un método de pago guardado, lo usamos; si no, valor por defecto
       if (usuario.metodo_pago_preferido) {
@@ -559,6 +580,7 @@ function App() {
     await supabase.auth.signOut();
     setAuthUser(null);
     setTienePedidosListos(false);
+    setTienePedidosListosStaff(false);
   };
 
 
@@ -623,7 +645,7 @@ function App() {
         >
           🧾 Mi pedido ({pedido.length}) – {totalFormatted} €
         </button>
-        {esStaff && (
+        {tieneRolPanel && (
           <button
             className={pagina === 'panel' ? 'nav-btn active' : 'nav-btn'}
             onClick={() => setPagina('panel')}
@@ -711,20 +733,22 @@ function App() {
               </p>
             )}
 
-            {authUser && !esStaff && (
+            {authUser && !tieneRolPanel && (
               <p>
                 Tu usuario no tiene permisos de personal para ver el panel interno.
               </p>
             )}
 
-            {authUser && esStaff && (
+            {authUser && tieneRolPanel && (
               <section>
                 <h2>Panel interno – Pedidos</h2>
 
                 <button
                   onClick={() => {
                     cargarPedidosPanel();
-                    cargarEstadisticasPanel();
+                    if (esStaff) {
+                      cargarEstadisticasPanel();
+                    }
                   }}
                 >
                   Actualizar lista
@@ -736,36 +760,45 @@ function App() {
                   <p>No hay pedidos registrados.</p>
                 )}
 
-                <div className="panel-dashboard">
-                  <h3>Resumen de ventas</h3>
-                  <p>Ventas totales registradas: {statsPanel.totalVentas.toFixed(2)} €</p>
-                  <p>Número de pedidos: {statsPanel.numPedidos}</p>
-                  {statsPanel.productoTopNombre && (
-                    <p>Producto más pedido: {statsPanel.productoTopNombre}</p>
-                  )}
-                </div>
+                {esStaff && (
+                  <div className="panel-dashboard">
+                    <h3>Resumen de ventas</h3>
+                    <p>Ventas totales registradas: {statsPanel.totalVentas.toFixed(2)} €</p>
+                    <p>Número de pedidos: {statsPanel.numPedidos}</p>
+                    {statsPanel.productoTopNombre && (
+                      <p>Producto más pedido: {statsPanel.productoTopNombre}</p>
+                    )}
+                  </div>
+                )}
 
                 {!cargandoPanel && pedidosPanel.length > 0 && (
                   <ul className="lista-pedidos-panel">
-                    {pedidosPanel.map((p) => (
-                      <li key={p.id}>
-                        <div>
-                          <strong>Pedido #{p.id}</strong> – {p.total.toFixed(2)} € – Estado: {p.estado}
-                        </div>
-                        <div className="panel-actions">
-                          {p.estado !== 'listo' && p.estado !== 'recogido' && (
-                            <button onClick={() => actualizarEstadoPedidoPanel(p.id, 'listo')}>
-                              Marcar como listo
-                            </button>
-                          )}
-                          {p.estado === 'listo' && (
-                            <button onClick={() => actualizarEstadoPedidoPanel(p.id, 'recogido')}>
-                              Marcar como recogido
-                            </button>
-                          )}
-                        </div>
-                      </li>
-                    ))}
+                    {pedidosPanel.map((p) => {
+                      const puedeMarcarListo =
+                        esCocinero && p.estado === 'en_preparacion';
+                      const puedeMarcarRecogido =
+                        esStaff && p.estado === 'listo';
+
+                      return (
+                        <li key={p.id}>
+                          <div>
+                            <strong>Pedido #{p.id}</strong> – {p.total.toFixed(2)} € – Estado: {p.estado}
+                          </div>
+                          <div className="panel-actions">
+                            {puedeMarcarListo && (
+                              <button onClick={() => actualizarEstadoPedidoPanel(p.id, 'listo')}>
+                                Marcar como listo
+                              </button>
+                            )}
+                            {puedeMarcarRecogido && (
+                              <button onClick={() => actualizarEstadoPedidoPanel(p.id, 'recogido')}>
+                                Marcar como recogido
+                              </button>
+                            )}
+                          </div>
+                        </li>
+                      );
+                    })}
                   </ul>
                 )}
               </section>
@@ -777,10 +810,19 @@ function App() {
           <section>
             <h2>Mi perfil</h2>
 
-            {authUser && tienePedidosListos && (
+            {/* Alerta para clientes con pedidos listos */}
+            {authUser && !cargandoPerfil && perfilUsuario && perfilUsuario.tipo === 'cliente' && tienePedidosListos && (
               <div className="alert-pedido-global">
                 <strong>¡Pedido listo!</strong>{' '}
                 Tienes al menos un pedido marcado como "listo" para recoger.
+              </div>
+            )}
+
+            {/* Alerta para personal de sala (staff) cuando hay pedidos listos en general */}
+            {authUser && !cargandoPerfil && perfilUsuario && perfilUsuario.tipo === 'staff' && tienePedidosListosStaff && (
+              <div className="alert-pedido-global">
+                <strong>Pedidos listos</strong>{' '}
+                Hay pedidos marcados como "listo" para recoger en la cafetería.
               </div>
             )}
 
@@ -951,9 +993,11 @@ function App() {
                         <strong>Tipo:</strong>{' '}
                         {perfilUsuario.tipo === 'staff'
                           ? 'personal Las Casitas'
+                          : perfilUsuario.tipo === 'cocinero'
+                          ? 'cocinero Las Casitas'
                           : `cliente${perfilUsuario.miembro_ulpgc ? ' – miembro ULPGC' : ''}`}
                       </p>
-                      {perfilUsuario.tipo !== 'staff' && (
+                      {perfilUsuario.tipo === 'cliente' && (
                         <p>
                           <strong>Puntos acumulados:</strong> {puntosUsuario}
                         </p>
@@ -966,7 +1010,7 @@ function App() {
                   </button>
                 </div>
 
-                {historialPedidos && historialPedidos.length > 0 && (
+                {historialPedidos && historialPedidos.length > 0 && perfilUsuario.tipo === 'cliente' && (
                   <>
                     <h3 className="perfil-historial-titulo">
                       Historial de pedidos
@@ -1008,7 +1052,7 @@ function App() {
             )}
 
             {/* Card separata per la simulación de pagos */}
-            {authUser && !cargandoPerfil && perfilUsuario && perfilUsuario.tipo !== 'staff' && (
+            {authUser && !cargandoPerfil && perfilUsuario && perfilUsuario.tipo === 'cliente' && (
               <div className="perfil-card perfil-card-secundaria">
                 <h3 className="perfil-historial-titulo">Método de pago preferido</h3>
                 <p className="perfil-metodo-sub">
