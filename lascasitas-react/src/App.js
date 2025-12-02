@@ -33,6 +33,7 @@ function App() {
   const [regEmail, setRegEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
   const [regError, setRegError] = useState(null);
+  const [regMiembro, setRegMiembro] = useState(false);
 
   const [tienePedidosListos, setTienePedidosListos] = useState(false);
 
@@ -346,22 +347,44 @@ function App() {
       setPerfilUsuario(null);
       setPuntosUsuario(0);
       setHistorialPedidos([]);
+      setTienePedidosListos(false);
       return;
     }
 
     setCargandoPerfil(true);
+
     try {
       // 1. Buscar perfil en 'usuarios' por auth_id
       const { data: usuario, error: userError } = await supabase
         .from('usuarios')
-        .select('id, nombre, email, tipo')
+        .select('id, nombre, email, tipo, miembro_ulpgc')
         .eq('auth_id', authUser.id)
-        .single();
+        .maybeSingle();          // 👈 cambio importante
 
+      // Si hay error real en la query
       if (userError) {
-        throw userError;
+        console.error('Error leyendo perfil de usuarios:', userError);
+        setPerfilUsuario(null);
+        setPuntosUsuario(0);
+        setHistorialPedidos([]);
+        setTienePedidosListos(false);
+        return;
       }
 
+      // Si NO hay fila en usuarios para este authUser
+      if (!usuario) {
+        console.warn(
+          'Usuario autenticado sin fila correspondiente en public.usuarios. ' +
+          'Revisa el trigger que crea perfiles.'
+        );
+        setPerfilUsuario(null);
+        setPuntosUsuario(0);
+        setHistorialPedidos([]);
+        setTienePedidosListos(false);
+        return;
+      }
+
+      // Tenemos perfil correcto
       setPerfilUsuario(usuario);
 
       // 2. Leer puntos de puntos_usuarios
@@ -375,25 +398,30 @@ function App() {
       if (!puntosError && filaPuntos) {
         puntos = Number(filaPuntos.puntos) || 0;
       }
-
       setPuntosUsuario(puntos);
 
-      // 3. Historial de pedidos
+      // 3. Historial de pedidos del usuario
       const { data: pedidosUsuario, error: pedidosError } = await supabase
         .from('pedidos')
-        .select('id, total, estado, creado_en') // asegúrate de incluir creado_en si existe
+        .select('id, total, estado, creado_en')
         .eq('usuario_id', usuario.id)
         .order('creado_en', { ascending: false });
 
-      if (!pedidosError && pedidosUsuario) {
-        // Ordine per stato: en_preparacion → listo → recogido → altri
+      if (pedidosError) {
+        console.error('Error leyendo pedidos del usuario:', pedidosError);
+        setHistorialPedidos([]);
+        setTienePedidosListos(false);
+        return;
+      }
+
+      if (pedidosUsuario && pedidosUsuario.length > 0) {
+        // Ordenar por estado y fecha
         const ordenEstado = { en_preparacion: 0, listo: 1, recogido: 2 };
 
         const pedidosOrdenados = [...pedidosUsuario].sort((a, b) => {
           const ea = ordenEstado[a.estado] ?? 99;
           const eb = ordenEstado[b.estado] ?? 99;
           if (ea !== eb) return ea - eb;
-          // stesso stato: più recenti sopra
           return new Date(b.creado_en).getTime() - new Date(a.creado_en).getTime();
         });
 
@@ -401,16 +429,20 @@ function App() {
 
         const hayListos = pedidosOrdenados.some((p) => p.estado === 'listo');
         setTienePedidosListos(hayListos);
+      } else {
+        setHistorialPedidos([]);
+        setTienePedidosListos(false);
       }
 
-
     } catch (e) {
-      console.error('Error cargando perfil de usuario:', e);
+      console.error('Error general cargando perfil de usuario:', e);
       setPerfilUsuario(null);
       setPuntosUsuario(0);
       setHistorialPedidos([]);
+      setTienePedidosListos(false);
+    } finally {
+      setCargandoPerfil(false);
     }
-    setCargandoPerfil(false);
   }, [authUser]);
 
 
@@ -477,7 +509,8 @@ function App() {
       options: {
         data: {
           nombre: regNombre,
-          tipo: 'estudiante', 
+          tipo: 'cliente',
+          miembro_ulpgc: regMiembro,
         },
       },
     });
@@ -791,6 +824,32 @@ function App() {
                         />
                       </div>
 
+                      <div className="login-field">
+                        <label>¿Eres miembro de la ULPGC (estudiante/profesor)?</label>
+                        <div className="login-radio-row">
+                          <label>
+                            <input
+                              type="radio"
+                              name="miembroULPGC"
+                              value="si"
+                              checked={regMiembro === true}
+                              onChange={() => setRegMiembro(true)}
+                            />
+                            {' '}Sí
+                          </label>
+                          <label>
+                            <input
+                              type="radio"
+                              name="miembroULPGC"
+                              value="no"
+                              checked={regMiembro === false}
+                              onChange={() => setRegMiembro(false)}
+                            />
+                            {' '}No
+                          </label>
+                        </div>
+                      </div>
+
                       <button type="submit" className="btn-primary">
                         Crear cuenta
                       </button>
@@ -820,7 +879,9 @@ function App() {
                 <div className="perfil-meta">
                   <p>
                     <strong>Tipo:</strong>{' '}
-                    {perfilUsuario.tipo || 'estudiante'}
+                    {perfilUsuario.tipo === 'staff'
+                      ? 'personal Las Casitas'
+                      : `cliente${perfilUsuario.miembro_ulpgc ? ' – miembro ULPGC' : ''}`}
                   </p>
                   {perfilUsuario.tipo !== 'staff' && (
                     <p>
@@ -873,6 +934,40 @@ function App() {
                     </ul>
                   </>
                 )}
+              </div>
+            )}
+            {/* Caso raro: hay usuario autenticado pero no se ha encontrado su fila en public.usuarios */}
+            {authUser && !cargandoPerfil && !perfilUsuario && (
+              <div className="perfil-card">
+                <div className="perfil-header">
+                  <div>
+                    <h3 className="perfil-nombre">
+                      {authUser.email || 'Usuario'}
+                    </h3>
+                    <p className="perfil-email">
+                      {authUser.email}
+                    </p>
+                  </div>
+                  <span className="perfil-badge perfil-badge-warning">
+                    Perfil incompleto
+                  </span>
+                </div>
+
+                <p>
+                  No se ha encontrado tu perfil en la base de datos de Las Casitas.
+                  Es posible que se haya borrado la fila correspondiente en la tabla
+                  <code> public.usuarios</code>.
+                </p>
+                <p>
+                  Puedes cerrar sesión y volver a registrarte para que se cree de nuevo
+                  tu perfil correctamente.
+                </p>
+
+                <div className="perfil-actions">
+                  <button className="btn-secondary" onClick={handleLogout}>
+                    Cerrar sesión
+                  </button>
+                </div>
               </div>
             )}
           </section>
