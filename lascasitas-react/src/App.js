@@ -441,7 +441,7 @@ function App() {
     cargarPerfilUsuario();
   }, [pagina, cargarPerfilUsuario]);
 
-  
+
 
   useEffect(() => {
   if (authUser) {
@@ -505,12 +505,14 @@ function App() {
         >
           📦 Estado del pedido
         </button>
-        <button
-          className={pagina === 'panel' ? 'nav-btn active' : 'nav-btn'}
-          onClick={() => setPagina('panel')}
-        >
-          🧑‍🍳 Panel interno
-        </button>
+        {esStaff && (
+          <button
+            className={pagina === 'panel' ? 'nav-btn active' : 'nav-btn'}
+            onClick={() => setPagina('panel')}
+          >
+            🧑‍🍳 Panel interno
+          </button>
+        )}
         <button
           className={pagina === 'perfil' ? 'nav-btn active' : 'nav-btn'}
           onClick={() => setPagina('perfil')}
