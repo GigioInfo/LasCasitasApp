@@ -1030,3 +1030,10 @@ section p strong {
 .toggle-menu-btn.toggle-mostrar:hover {
   background: #dcfce7;
 }
+
+
+
+.info-text {
+  font-size: 0.95rem;
+  color: #374151;
+}

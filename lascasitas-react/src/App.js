@@ -54,6 +54,14 @@ function App() {
   const [nuevaImagen, setNuevaImagen] = useState('');
   const [nuevaCategoria, setNuevaCategoria] = useState('');
 
+
+  // Estado para reservas de mesa
+  const [reservaFecha, setReservaFecha] = useState('');
+  const [reservaHora, setReservaHora] = useState('');
+  const [reservaPersonas, setReservaPersonas] = useState(2);
+  const [reservaMensaje, setReservaMensaje] = useState('');
+  const [reservaLoading, setReservaLoading] = useState(false);
+
   const [statsPanel, setStatsPanel] = useState({
     totalVentas: 0,
     numPedidos: 0,
@@ -61,6 +69,15 @@ function App() {
   });
   const [panelTab, setPanelTab] = useState('pedidos'); // 'pedidos' | 'menu' (solo cocinero)
 
+
+
+  function construirDateDesdeInputs(fechaStr, horaStr) {
+    if (!fechaStr || !horaStr) return null;
+    const [year, month, day] = fechaStr.split('-').map(Number);
+    const [hour, minute] = horaStr.split(':').map(Number);
+    // uso UTC per evitare problemi di timezone nella demo
+    return new Date(Date.UTC(year, month - 1, day, hour, minute));
+  }
   
   const cargarMenu = async () => {
     try {
@@ -336,6 +353,130 @@ function App() {
     setPedido([]);
   };
 
+
+
+
+  const comprobarDisponibilidad = async (fechaHora, numPersonas) => {
+    // intervallo di 1 ora
+    const inicioISO = fechaHora.toISOString();
+    const finDate = new Date(fechaHora.getTime() + 60 * 60 * 1000);
+    const finISO = finDate.toISOString();
+
+    // 1) leggo l’aforo totale
+    const { data: config, error: configError } = await supabase
+      .from('config_local')
+      .select('aforo_total')
+      .single();
+
+    if (configError) {
+      console.error('Error leyendo config_local:', configError);
+      throw configError;
+    }
+
+    const aforoTotal = Number(config.aforo_total);
+
+    // 2) leggo tutte le prenotazioni che SI SOVRAPPONGONO al nostro intervallo
+    // condizione di sovrapposizione: fin > inicio AND inicio < fin
+    const { data: reservas, error: reservasError } = await supabase
+      .from('reservas')
+      .select('num_personas, inicio, fin, estado')
+      .or('estado.eq.confirmada,estado.eq.pendiente')
+      .gt('fin', inicioISO)
+      .lt('inicio', finISO);
+
+    if (reservasError) {
+      console.error('Error leyendo reservas:', reservasError);
+      throw reservasError;
+    }
+
+    const yaReservadas = (reservas || []).reduce(
+      (suma, r) => suma + Number(r.num_personas),
+      0
+    );
+
+    const totalConNueva = yaReservadas + numPersonas;
+
+    // restituisco true/false
+    return totalConNueva <= aforoTotal;
+  };
+
+
+
+  const handleReservarMesa = async (e) => {
+    e.preventDefault();
+    setReservaMensaje('');
+
+    if (!authUser) {
+      setReservaMensaje('Debes iniciar sesión para reservar una mesa.');
+      setPagina('perfil');
+      return;
+    }
+
+    const fechaHora = construirDateDesdeInputs(reservaFecha, reservaHora);
+    if (!fechaHora) {
+      setReservaMensaje('Completa fecha y hora.');
+      return;
+    }
+
+    const num = Number(reservaPersonas);
+    if (!num || num <= 0) {
+      setReservaMensaje('Número de personas no válido.');
+      return;
+    }
+
+    setReservaLoading(true);
+    try {
+      // 1) controlla disponibilità
+      const haySitio = await comprobarDisponibilidad(fechaHora, num);
+      if (!haySitio) {
+        setReservaMensaje(
+          'No hay aforo disponible en ese tramo horario. Prueba con otra hora.'
+        );
+        return;
+      }
+
+      // 2) cerco id del usuario en tabla usuarios
+      const { data: usuario, error: userError } = await supabase
+        .from('usuarios')
+        .select('id, nombre, email')
+        .eq('auth_id', authUser.id)
+        .single();
+
+      if (userError || !usuario) {
+        console.error('No se ha encontrado el perfil del usuario para la reserva:', userError);
+        setReservaMensaje('No se ha encontrado tu perfil en la base de datos.');
+        return;
+      }
+
+      const inicioISO = fechaHora.toISOString();
+      const finISO = new Date(fechaHora.getTime() + 60 * 60 * 1000).toISOString();
+
+      // 3) inserisco la prenotazione
+      const { error: insertError } = await supabase.from('reservas').insert({
+        usuario_id: usuario.id,
+        num_personas: num,
+        inicio: inicioISO,
+        fin: finISO,
+        estado: 'confirmada',
+
+        nombre_contacto: usuario.nombre,
+        email_contacto: usuario.email,
+      });
+
+      if (insertError) {
+        console.error('Error creando reserva:', insertError);
+        setReservaMensaje('Ha ocurrido un error al crear la reserva.');
+        return;
+      }
+
+      setReservaMensaje('¡Reserva creada correctamente!');
+    } catch (err) {
+      console.error('Error general en la reserva:', err);
+      setReservaMensaje('Error inesperado al crear la reserva.');
+    } finally {
+      setReservaLoading(false);
+    }
+  };
 
 
 
@@ -731,6 +872,12 @@ function App() {
           </button>
         )}
         <button
+          className={pagina === 'reserva' ? 'nav-btn active' : 'nav-btn'}
+          onClick={() => setPagina('reserva')}
+        >
+          📅 Reservar mesa
+        </button>
+        <button
           className={pagina === 'perfil' ? 'nav-btn active' : 'nav-btn'}
           onClick={() => setPagina('perfil')}
         >
@@ -1091,6 +1238,70 @@ function App() {
             )}
           </>
         )}
+
+
+        {pagina === 'reserva' && (
+          <section>
+            <h2>Reservar mesa</h2>
+
+            {!authUser && (
+              <p>
+                Debes iniciar sesión o crear una cuenta para reservar una mesa.
+              </p>
+            )}
+
+            {authUser && (
+              <form onSubmit={handleReservarMesa} className="login-form">
+                <div className="login-field">
+                  <label>Fecha</label>
+                  <input
+                    type="date"
+                    value={reservaFecha}
+                    onChange={(e) => setReservaFecha(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div className="login-field">
+                  <label>Hora</label>
+                  <input
+                    type="time"
+                    value={reservaHora}
+                    onChange={(e) => setReservaHora(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div className="login-field">
+                  <label>Número de personas</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="20"
+                    value={reservaPersonas}
+                    onChange={(e) => setReservaPersonas(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className="btn-primary"
+                  disabled={reservaLoading}
+                >
+                  {reservaLoading ? 'Comprobando disponibilidad...' : 'Reservar'}
+                </button>
+              </form>
+            )}
+
+            {reservaMensaje && (
+              <p className="info-text" style={{ marginTop: '1rem' }}>
+                {reservaMensaje}
+              </p>
+            )}
+          </section>
+        )}
+
 
         {pagina === 'perfil' && (
           <section>
