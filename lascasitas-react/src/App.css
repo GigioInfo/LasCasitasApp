@@ -522,3 +522,32 @@ section p strong {
   font-size: 1rem;
   font-weight: 600;
 }
+
+
+
+
+
+.auth-toggle {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  background: #eef1ff;
+  padding: 0.25rem;
+  border-radius: 999px;
+}
+
+.auth-tab {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 0.4rem 0.8rem;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.auth-tab.active {
+  background: #1b4f9c;
+  color: white;
+  font-weight: 600;
+}

@@ -720,40 +720,119 @@ function App() {
             {/* Se NON hay usuario logueado → formulario de login */}
             {!authLoading && !authUser && (
               <div className="login-card">
-                <h3 className="login-title">Inicia sesión para ver tu perfil</h3>
-                <p className="login-subtitle">
-                  Usa tus credenciales de Las Casitas para consultar puntos y pedidos.
-                </p>
-
-                <form onSubmit={handleLogin} className="login-form">
-                  <div className="login-field">
-                    <label>Correo electrónico</label>
-                    <input
-                      type="email"
-                      value={loginEmail}
-                      onChange={(e) => setLoginEmail(e.target.value)}
-                      placeholder="ejemplo@ulpgc.es"
-                      required
-                    />
-                  </div>
-
-                  <div className="login-field">
-                    <label>Contraseña</label>
-                    <input
-                      type="password"
-                      value={loginPassword}
-                      onChange={(e) => setLoginPassword(e.target.value)}
-                      placeholder="Introduce tu contraseña"
-                      required
-                    />
-                  </div>
-
-                  <button type="submit" className="btn-primary">
+                <div className="auth-toggle">
+                  <button
+                    type="button"
+                    className={modoAuth === 'login' ? 'auth-tab active' : 'auth-tab'}
+                    onClick={() => {
+                      setModoAuth('login');
+                      setAuthError(null);
+                      setRegError(null);
+                    }}
+                  >
                     Iniciar sesión
                   </button>
+                  <button
+                    type="button"
+                    className={modoAuth === 'registro' ? 'auth-tab active' : 'auth-tab'}
+                    onClick={() => {
+                      setModoAuth('registro');
+                      setAuthError(null);
+                      setRegError(null);
+                    }}
+                  >
+                    Crear cuenta
+                  </button>
+                </div>
 
-                  {authError && <p className="error-text">{authError}</p>}
-                </form>
+                {modoAuth === 'login' && (
+                  <>
+                    <h3 className="login-title">Inicia sesión para ver tu perfil</h3>
+                    <p className="login-subtitle">
+                      Usa tus credenciales de Las Casitas para consultar puntos y pedidos.
+                    </p>
+
+                    <form onSubmit={handleLogin} className="login-form">
+                      <div className="login-field">
+                        <label>Correo electrónico</label>
+                        <input
+                          type="email"
+                          value={loginEmail}
+                          onChange={(e) => setLoginEmail(e.target.value)}
+                          placeholder="ejemplo@ulpgc.es"
+                          required
+                        />
+                      </div>
+
+                      <div className="login-field">
+                        <label>Contraseña</label>
+                        <input
+                          type="password"
+                          value={loginPassword}
+                          onChange={(e) => setLoginPassword(e.target.value)}
+                          placeholder="Introduce tu contraseña"
+                          required
+                        />
+                      </div>
+
+                      <button type="submit" className="btn-primary">
+                        Iniciar sesión
+                      </button>
+
+                      {authError && <p className="error-text">{authError}</p>}
+                    </form>
+                  </>
+                )}
+
+                {modoAuth === 'registro' && (
+                  <>
+                    <h3 className="login-title">Crear una nueva cuenta</h3>
+                    <p className="login-subtitle">
+                      Regístrate para acumular puntos y ver tu historial de pedidos.
+                    </p>
+
+                    <form onSubmit={handleRegister} className="login-form">
+                      <div className="login-field">
+                        <label>Nombre</label>
+                        <input
+                          type="text"
+                          value={regNombre}
+                          onChange={(e) => setRegNombre(e.target.value)}
+                          placeholder="Nombre y apellidos"
+                          required
+                        />
+                      </div>
+
+                      <div className="login-field">
+                        <label>Correo electrónico</label>
+                        <input
+                          type="email"
+                          value={regEmail}
+                          onChange={(e) => setRegEmail(e.target.value)}
+                          placeholder="ejemplo@ulpgc.es"
+                          required
+                        />
+                      </div>
+
+                      <div className="login-field">
+                        <label>Contraseña</label>
+                        <input
+                          type="password"
+                          value={regPassword}
+                          onChange={(e) => setRegPassword(e.target.value)}
+                          placeholder="Mínimo 6 caracteres"
+                          required
+                        />
+                      </div>
+
+                      <button type="submit" className="btn-primary">
+                        Crear cuenta
+                      </button>
+
+                      {regError && <p className="error-text">{regError}</p>}
+                    </form>
+                  </>
+                )}
               </div>
             )}
 
