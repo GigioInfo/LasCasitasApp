@@ -29,6 +29,9 @@ function App() {
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
 
+  const [pagina, setPagina] = useState('menu');
+  const [pedido, setPedido] = useState([]);
+
   const [statsPanel, setStatsPanel] = useState({
     totalVentas: 0,
     numPedidos: 0,
@@ -78,7 +81,6 @@ function App() {
 
     checkSession();
 
-    // Listener per cambi di sessione (login / logout)
     const { data: subscription } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setAuthUser(session?.user ?? null);
@@ -90,8 +92,19 @@ function App() {
     };
   }, []);
 
-  const [pagina, setPagina] = useState('menu');
-  const [pedido, setPedido] = useState([]);
+  useEffect(() => {
+    if (pagina !== 'perfil') return;
+
+    if (!authUser) {
+      setPerfilUsuario(null);
+      setPuntosUsuario(0);
+      setHistorialPedidos([]);
+      return;
+    }
+
+    cargarPerfilUsuario();
+  }, [authUser, pagina]);
+
 
   const añadirAlPedido = (item) => {
     setPedido([...pedido, item]);
@@ -491,10 +504,7 @@ function App() {
         </button>
         <button
           className={pagina === 'perfil' ? 'nav-btn active' : 'nav-btn'}
-          onClick={() => {
-            setPagina('perfil');
-            cargarPerfilUsuario();
-          }}
+          onClick={() => setPagina('perfil')}
         >
           👤 Mi perfil
         </button>
