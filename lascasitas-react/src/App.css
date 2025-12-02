@@ -211,15 +211,7 @@ section button:hover {
 }
 
 
-section button:first-of-type {
-  background: #e5e7eb;
-  color: #111827;
-  box-shadow: 0 2px 8px rgba(148, 163, 184, 0.45);
-}
 
-section button:first-of-type:hover {
-  background: #d1d5db;
-}
 
 /* ===== PAGINA "ESTADO DEL PEDIDO" ===== */
 
@@ -632,4 +624,35 @@ section p strong {
 .estado-badge.recogido {
   background: #e5e7eb;
   color: #4b5563;
+}
+
+
+.item-pedido {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.btn-eliminar-linea {
+  border: none;
+  background: #fee2e2;
+  color: #b91c1c;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  line-height: 1;
+  box-shadow: 0 1px 4px rgba(185, 28, 28, 0.25);
+  transition: background 0.15s ease, transform 0.08s ease,
+    box-shadow 0.15s ease;
+}
+
+.btn-eliminar-linea:hover {
+  background: #fecaca;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(185, 28, 28, 0.35);
 }

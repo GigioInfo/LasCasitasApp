@@ -103,6 +103,10 @@ function App() {
     setPedido([...pedido, item]);
   };
 
+  const eliminarDelPedido = (indiceAEliminar) => {
+    setPedido((prev) => prev.filter((_, index) => index !== indiceAEliminar));
+  };
+
   const totalBruto = pedido.reduce(
     (suma, item) => suma + Number(item.precio),
     0
@@ -567,8 +571,18 @@ function App() {
               <>
                 <ul className="lista-pedido">
                   {pedido.map((item, index) => (
-                    <li key={index}>
-                      {item.nombre} – {item.precio.toFixed(2)} €
+                    <li key={index} className="item-pedido">
+                      <span>
+                        {item.nombre} – {item.precio.toFixed(2)} €
+                      </span>
+                      <button
+                        type="button"
+                        className="btn-eliminar-linea"
+                        aria-label="Quitar este producto del pedido"
+                        onClick={() => eliminarDelPedido(index)}
+                      >
+                        ×
+                      </button>
                     </li>
                   ))}
                 </ul>
