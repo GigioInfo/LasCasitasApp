@@ -819,8 +819,7 @@ function App() {
             {authUser && tieneRolPanel && (
               <section>
                 <div className="panel-card">
-                  {/* Titolo generale */}
-                  <h2 className="panel-title">Panel interno</h2>
+                  
 
                   {/* Toggle grande Pedidos / Menú (solo cocinero) */}
                   {esCocinero && (
