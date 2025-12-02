@@ -846,3 +846,36 @@ section p strong {
   background: #e5e7eb;
   color: #4b5563;
 }
+
+
+
+
+/* Card “aggiungi prodotto” nel panel del cocinero */
+.menu-card-add {
+  border: 2px dashed #d1d5db;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #4b5563;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+}
+
+.menu-card-add .add-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  border: 1px solid #d1d5db;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.9rem;
+  margin-bottom: 0.4rem;
+}
+
+.menu-card-add:hover {
+  background: #f3f4f6;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12);
+}

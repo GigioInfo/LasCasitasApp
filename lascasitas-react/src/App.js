@@ -48,6 +48,12 @@ function App() {
   const esCocinero = perfilUsuario?.tipo === 'cocinero';
   const tieneRolPanel = esStaff || esCocinero;
 
+  const [mostrarFormularioNuevo, setMostrarFormularioNuevo] = useState(false);
+  const [nuevoNombre, setNuevoNombre] = useState('');
+  const [nuevoPrecio, setNuevoPrecio] = useState('');
+  const [nuevaImagen, setNuevaImagen] = useState('');
+  const [nuevaCategoria, setNuevaCategoria] = useState('');
+
   const [statsPanel, setStatsPanel] = useState({
     totalVentas: 0,
     numPedidos: 0,
@@ -107,6 +113,50 @@ function App() {
     cargarMenu();
   };
   
+
+
+  const handleCrearProducto = async (e) => {
+    e.preventDefault();
+
+    const precioNumero = parseFloat(String(nuevoPrecio).replace(',', '.'));
+    if (Number.isNaN(precioNumero)) {
+      alert('Introduce un precio válido (por ejemplo 2.50).');
+      return;
+    }
+
+    try {
+      const { error } = await supabase.from('productos').insert({
+        nombre: nuevoNombre,
+        precio: precioNumero,
+        imagen_url: nuevaImagen || null,
+        categoria_id: nuevaCategoria ? Number(nuevaCategoria) : null,
+        visible_cliente: true, // por defecto visible en el menú de clientes
+      });
+
+      if (error) {
+        console.error('Error creando producto:', error);
+        alert('Ha ocurrido un error al crear el producto.');
+        return;
+      }
+
+      // Puliamo il form
+      setNuevoNombre('');
+      setNuevoPrecio('');
+      setNuevaImagen('');
+      setNuevaCategoria('');
+      setMostrarFormularioNuevo(false);
+
+      // Ricarichiamo il menu così appare subito
+      cargarMenu();
+    } catch (e2) {
+      console.error('Error general creando producto:', e2);
+    }
+  };
+
+
+
+
+
   useEffect(() => {
     cargarMenu();
   }, []);
@@ -887,7 +937,8 @@ function App() {
                           marginBottom: '0.75rem',
                         }}
                       >
-                        Vista del menú tal y como lo ve un cliente, pero aquí puedes ocultar o mostrar productos.
+                        Vista del menú tal y como lo ve un cliente. Aquí puedes ocultar o mostrar productos
+                        y añadir nuevos platos.
                       </p>
 
                       {cargandoMenu ? (
@@ -896,6 +947,17 @@ function App() {
                         <p>No hay productos en el menú.</p>
                       ) : (
                         <div className="menu-grid">
+                          {/* Card “aggiungi prodotto” */}
+                          <div
+                            className="menu-card menu-card-add"
+                            onClick={() => setMostrarFormularioNuevo(true)}
+                          >
+                            <div className="add-icon">+</div>
+                            <h3 className="menu-title">Añadir producto</h3>
+                            <p className="menu-price">Crear un nuevo elemento del menú</p>
+                          </div>
+
+                          {/* Card normali / grigie per prodotti */}
                           {menuItems.map((item) => (
                             <div
                               key={item.id}
@@ -933,6 +995,70 @@ function App() {
                             </div>
                           ))}
                         </div>
+                      )}
+
+                      {/* Form per creare un nuovo prodotto (compare solo se clicchi la card “+”) */}
+                      {mostrarFormularioNuevo && (
+                        <form className="panel-menu-form" onSubmit={handleCrearProducto}>
+                          <h4 style={{ marginTop: '1.5rem', marginBottom: '0.75rem' }}>
+                            Nuevo producto del menú
+                          </h4>
+
+                          <div className="panel-menu-row">
+                            <div className="panel-menu-field">
+                              <label>Nombre</label>
+                              <input
+                                type="text"
+                                value={nuevoNombre}
+                                onChange={(e) => setNuevoNombre(e.target.value)}
+                                required
+                              />
+                            </div>
+                            <div className="panel-menu-field">
+                              <label>Precio (€)</label>
+                              <input
+                                type="text"
+                                value={nuevoPrecio}
+                                onChange={(e) => setNuevoPrecio(e.target.value)}
+                                required
+                              />
+                            </div>
+                          </div>
+
+                          <div className="panel-menu-row">
+                            <div className="panel-menu-field">
+                              <label>URL de imagen (opcional)</label>
+                              <input
+                                type="text"
+                                value={nuevaImagen}
+                                onChange={(e) => setNuevaImagen(e.target.value)}
+                                placeholder="https://..."
+                              />
+                            </div>
+                            <div className="panel-menu-field">
+                              <label>ID categoría (opcional)</label>
+                              <input
+                                type="text"
+                                value={nuevaCategoria}
+                                onChange={(e) => setNuevaCategoria(e.target.value)}
+                                placeholder="Ej: 1"
+                              />
+                            </div>
+                          </div>
+
+                          <div style={{ marginTop: '0.6rem', display: 'flex', gap: '0.5rem' }}>
+                            <button type="submit" className="btn-primary">
+                              Guardar producto
+                            </button>
+                            <button
+                              type="button"
+                              className="btn-secondary"
+                              onClick={() => setMostrarFormularioNuevo(false)}
+                            >
+                              Cancelar
+                            </button>
+                          </div>
+                        </form>
                       )}
                     </div>
                   )}
