@@ -551,3 +551,20 @@ section p strong {
   color: white;
   font-weight: 600;
 }
+
+
+.auth-tab {
+  background: #e6e7ee;
+  color: black !important;   /* 👈 testo sempre nero */
+  padding: 12px 20px;
+  border-radius: 30px;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background 0.2s ease;
+}
+
+.auth-tab.active {
+  background: #1b4f9c;
+  color: white !important;   /* 👈 la tab attiva resta bianca */
+}
