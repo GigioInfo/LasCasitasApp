@@ -235,8 +235,8 @@ function App() {
     const idPedido = await guardarPedidoEnSupabase(pedido, total);
     if (!idPedido) return;
 
-  
     vaciarPedido();
+    setPagina('perfil');
   };
 
 
@@ -261,15 +261,14 @@ function App() {
     setPedidosPanel(data);
   };
 
-  //marcar listo
-  const marcarPedidoListo = async (id) => {
+  const actualizarEstadoPedidoPanel = async (id, nuevoEstado) => {
     const { error } = await supabase
       .from('pedidos')
-      .update({ estado: 'listo' })
+      .update({ estado: nuevoEstado })
       .eq('id', id);
 
     if (error) {
-      console.error('Error marcando pedido como listo:', error);
+      console.error(`Error actualizando pedido a ${nuevoEstado}:`, error);
       return;
     }
 
@@ -397,12 +396,23 @@ function App() {
         .from('pedidos')
         .select('id, total, estado, creado_en') // asegúrate de incluir creado_en si existe
         .eq('usuario_id', usuario.id)
-        .order('id', { ascending: false });
+        .order('creado_en', { ascending: false });
 
       if (!pedidosError && pedidosUsuario) {
-        setHistorialPedidos(pedidosUsuario);
+        // Ordine per stato: en_preparacion → listo → recogido → altri
+        const ordenEstado = { en_preparacion: 0, listo: 1, recogido: 2 };
 
-        const hayListos = pedidosUsuario.some((p) => p.estado === 'listo');
+        const pedidosOrdenados = [...pedidosUsuario].sort((a, b) => {
+          const ea = ordenEstado[a.estado] ?? 99;
+          const eb = ordenEstado[b.estado] ?? 99;
+          if (ea !== eb) return ea - eb;
+          // stesso stato: più recenti sopra
+          return new Date(b.creado_en).getTime() - new Date(a.creado_en).getTime();
+        });
+
+        setHistorialPedidos(pedidosOrdenados);
+
+        const hayListos = pedidosOrdenados.some((p) => p.estado === 'listo');
         setTienePedidosListos(hayListos);
       }
 
@@ -629,11 +639,18 @@ function App() {
                         <div>
                           <strong>Pedido #{p.id}</strong> – {p.total.toFixed(2)} € – Estado: {p.estado}
                         </div>
-                        {p.estado !== 'listo' && (
-                          <button onClick={() => marcarPedidoListo(p.id)}>
-                            Marcar como listo
-                          </button>
-                        )}
+                        <div className="panel-actions">
+                          {p.estado !== 'listo' && p.estado !== 'recogido' && (
+                            <button onClick={() => actualizarEstadoPedidoPanel(p.id, 'listo')}>
+                              Marcar como listo
+                            </button>
+                          )}
+                          {p.estado === 'listo' && (
+                            <button onClick={() => actualizarEstadoPedidoPanel(p.id, 'recogido')}>
+                              Marcar como recogido
+                            </button>
+                          )}
+                        </div>
                       </li>
                     ))}
                   </ul>
@@ -814,23 +831,35 @@ function App() {
                       Historial de pedidos
                     </h3>
                     <ul className="lista-historial">
-                      {historialPedidos.map((pedido) => (
-                        <li key={pedido.id}>
-                          <div>
-                            <strong>Pedido #{pedido.id}</strong> –{' '}
-                            {pedido.total.toFixed(2)} €
-                          </div>
-                          <div>
-                            <small>
-                              {/* usa el nombre de columna correcto de tu tabla,
-                                por ejemplo 'creado_en' */}
-                              {pedido.creado_en &&
-                                new Date(pedido.creado_en).toLocaleString()}{' '}
-                              • {pedido.estado}
-                            </small>
-                          </div>
-                        </li>
-                      ))}
+                      {historialPedidos.map((pedido) => {
+                        let badgeClass = 'estado-badge';
+                        if (pedido.estado === 'en_preparacion') badgeClass += ' en-preparacion';
+                        if (pedido.estado === 'listo') badgeClass += ' listo';
+                        if (pedido.estado === 'recogido') badgeClass += ' recogido';
+
+                        return (
+                          <li key={pedido.id} className="historial-item">
+                            <div className="historial-main">
+                              <div>
+                                <strong>Pedido #{pedido.id}</strong> – {pedido.total.toFixed(2)} €
+                                <div>
+                                  <small>
+                                    {pedido.creado_en &&
+                                      new Date(pedido.creado_en).toLocaleString()}
+                                  </small>
+                                </div>
+                              </div>
+                              <span className={badgeClass}>
+                                {pedido.estado === 'en_preparacion' && 'En preparación'}
+                                {pedido.estado === 'listo' && 'Listo para recoger'}
+                                {pedido.estado === 'recogido' && 'Recogido'}
+                                {!['en_preparacion', 'listo', 'recogido'].includes(pedido.estado) &&
+                                  pedido.estado}
+                              </span>
+                            </div>
+                          </li>
+                        );
+                      })}
                     </ul>
                   </>
                 )}

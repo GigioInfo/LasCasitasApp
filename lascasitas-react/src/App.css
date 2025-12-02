@@ -588,3 +588,48 @@ section p strong {
   background: #1b4f9c;
   color: white !important;   /* 👈 la tab attiva resta bianca */
 }
+
+
+
+
+
+
+.historial-item {
+  padding: 0.8rem 1rem;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  margin-bottom: 0.6rem;
+}
+
+.historial-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.estado-badge {
+  padding: 0.3rem 0.8rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: #e5e7eb;
+  color: #374151;
+  white-space: nowrap;
+}
+
+.estado-badge.en-preparacion {
+  background: #fff7d6;
+  color: #92400e;
+}
+
+.estado-badge.listo {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.estado-badge.recogido {
+  background: #e5e7eb;
+  color: #4b5563;
+}
