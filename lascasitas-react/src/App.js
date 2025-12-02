@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import './App.css';
 import Menu from './components/Menu';
 import Footer from './components/Footer';
@@ -91,19 +91,6 @@ function App() {
       subscription.subscription.unsubscribe();
     };
   }, []);
-
-  useEffect(() => {
-    if (pagina !== 'perfil') return;
-
-    if (!authUser) {
-      setPerfilUsuario(null);
-      setPuntosUsuario(0);
-      setHistorialPedidos([]);
-      return;
-    }
-
-    cargarPerfilUsuario();
-  }, [authUser, pagina]);
 
 
   const añadirAlPedido = (item) => {
@@ -388,7 +375,7 @@ function App() {
 
 
 
-  const cargarPerfilUsuario = async () => {
+  const cargarPerfilUsuario = useCallback(async () => {
     if (!authUser) {
       setPerfilUsuario(null);
       setPuntosUsuario(0);
@@ -428,7 +415,7 @@ function App() {
       // 3. Historial de pedidos
       const { data: pedidosUsuario, error: pedidosError } = await supabase
         .from('pedidos')
-        .select('id, total, estado')
+        .select('id, total, estado, creado_en') // asegúrate de incluir creado_en si existe
         .eq('usuario_id', usuario.id)
         .order('id', { ascending: false });
 
@@ -442,7 +429,15 @@ function App() {
       setHistorialPedidos([]);
     }
     setCargandoPerfil(false);
-  };
+  }, [authUser]);
+
+
+
+  useEffect(() => {
+    if (pagina !== 'perfil') return;
+
+    cargarPerfilUsuario();
+  }, [pagina, cargarPerfilUsuario]);
 
 
 
