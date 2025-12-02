@@ -39,6 +39,8 @@ function App() {
   const [regPassword, setRegPassword] = useState('');
   const [regError, setRegError] = useState(null);
 
+  const [tienePedidosListos, setTienePedidosListos] = useState(false);
+
   const esStaff = perfilUsuario?.tipo === 'staff';
 
   const [statsPanel, setStatsPanel] = useState({
@@ -430,7 +432,12 @@ function App() {
 
       if (!pedidosError && pedidosUsuario) {
         setHistorialPedidos(pedidosUsuario);
+
+        const hayListos = pedidosUsuario.some((p) => p.estado === 'listo');
+        setTienePedidosListos(hayListos);
       }
+
+
     } catch (e) {
       console.error('Error cargando perfil de usuario:', e);
       setPerfilUsuario(null);
@@ -483,6 +490,7 @@ function App() {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setAuthUser(null);
+    setTienePedidosListos(false);
   };
 
 
@@ -866,6 +874,13 @@ function App() {
                     Cerrar sesión
                   </button>
                 </div>
+
+                {tienePedidosListos && (
+                  <div className="perfil-alerta-listo">
+                    <strong>¡Pedido listo!</strong>
+                    Tienes al menos un pedido marcado como "listo" para recoger.
+                  </div>
+                )}
 
                 {historialPedidos && historialPedidos.length > 0 && (
                   <>
