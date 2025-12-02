@@ -678,6 +678,13 @@ function App() {
           <section>
             <h2>Mi perfil</h2>
 
+            {authUser && tienePedidosListos && (
+              <div className="alert-pedido-global">
+                <strong>¡Pedido listo!</strong>{' '}
+                Tienes al menos un pedido marcado como "listo" para recoger.
+              </div>
+            )}
+
             {authLoading && <p>Comprobando sesión...</p>}
 
             {/* Se NON hay usuario logueado → formulario de login */}
@@ -831,13 +838,6 @@ function App() {
                     Cerrar sesión
                   </button>
                 </div>
-
-                {tienePedidosListos && (
-                  <div className="perfil-alerta-listo">
-                    <strong>¡Pedido listo!</strong>
-                    Tienes al menos un pedido marcado como "listo" para recoger.
-                  </div>
-                )}
 
                 {historialPedidos && historialPedidos.length > 0 && (
                   <>
