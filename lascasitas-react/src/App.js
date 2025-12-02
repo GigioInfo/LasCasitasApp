@@ -444,14 +444,14 @@ function App() {
 
 
   useEffect(() => {
-  if (authUser) {
-    cargarPerfilUsuario();
-  } else {
-    setPerfilUsuario(null);
-    setPuntosUsuario(0);
-    setHistorialPedidos([]);
-  }
-}, [authUser]);
+    if (authUser) {
+      cargarPerfilUsuario();
+    } else {
+      setPerfilUsuario(null);
+      setPuntosUsuario(0);
+      setHistorialPedidos([]);
+    }
+  }, [authUser, cargarPerfilUsuario]);
 
 
 
@@ -601,50 +601,67 @@ function App() {
         )}
 
         {pagina === 'panel' && (
-          <section>
-            <h2>Panel interno – Pedidos</h2>
-
-            <button
-              onClick={() => {
-                cargarPedidosPanel();
-                cargarEstadisticasPanel();
-              }}
-            >
-              Actualizar lista
-            </button>
-
-            {cargandoPanel && <p>Cargando pedidos...</p>}
-
-            {!cargandoPanel && pedidosPanel.length === 0 && (
-              <p>No hay pedidos registrados.</p>
+          <>
+            {!authUser && (
+              <p>
+                Solo el personal puede acceder al panel interno.  
+                Inicia sesión con una cuenta de personal.
+              </p>
             )}
 
-            <div className="panel-dashboard">
-              <h3>Resumen de ventas</h3>
-              <p>Ventas totales registradas: {statsPanel.totalVentas.toFixed(2)} €</p>
-              <p>Número de pedidos: {statsPanel.numPedidos}</p>
-              {statsPanel.productoTopNombre && (
-                <p>Producto más pedido: {statsPanel.productoTopNombre}</p>
-              )}
-            </div>
-
-            {!cargandoPanel && pedidosPanel.length > 0 && (
-              <ul className="lista-pedidos-panel">
-                {pedidosPanel.map((p) => (
-                  <li key={p.id}>
-                    <div>
-                      <strong>Pedido #{p.id}</strong> – {p.total.toFixed(2)} € – Estado: {p.estado}
-                    </div>
-                    {p.estado !== 'listo' && (
-                      <button onClick={() => marcarPedidoListo(p.id)}>
-                        Marcar como listo
-                      </button>
-                    )}
-                  </li>
-                ))}
-              </ul>
+            {authUser && !esStaff && (
+              <p>
+                Tu usuario no tiene permisos de personal para ver el panel interno.
+              </p>
             )}
-          </section>
+
+            {authUser && esStaff && (
+              <section>
+                <h2>Panel interno – Pedidos</h2>
+
+                <button
+                  onClick={() => {
+                    cargarPedidosPanel();
+                    cargarEstadisticasPanel();
+                  }}
+                >
+                  Actualizar lista
+                </button>
+
+                {cargandoPanel && <p>Cargando pedidos...</p>}
+
+                {!cargandoPanel && pedidosPanel.length === 0 && (
+                  <p>No hay pedidos registrados.</p>
+                )}
+
+                <div className="panel-dashboard">
+                  <h3>Resumen de ventas</h3>
+                  <p>Ventas totales registradas: {statsPanel.totalVentas.toFixed(2)} €</p>
+                  <p>Número de pedidos: {statsPanel.numPedidos}</p>
+                  {statsPanel.productoTopNombre && (
+                    <p>Producto más pedido: {statsPanel.productoTopNombre}</p>
+                  )}
+                </div>
+
+                {!cargandoPanel && pedidosPanel.length > 0 && (
+                  <ul className="lista-pedidos-panel">
+                    {pedidosPanel.map((p) => (
+                      <li key={p.id}>
+                        <div>
+                          <strong>Pedido #{p.id}</strong> – {p.total.toFixed(2)} € – Estado: {p.estado}
+                        </div>
+                        {p.estado !== 'listo' && (
+                          <button onClick={() => marcarPedidoListo(p.id)}>
+                            Marcar como listo
+                          </button>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </section>
+            )}
+          </>
         )}
 
         {pagina === 'perfil' && (
