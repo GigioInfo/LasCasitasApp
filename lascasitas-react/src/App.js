@@ -32,6 +32,13 @@ function App() {
   const [pagina, setPagina] = useState('menu');
   const [pedido, setPedido] = useState([]);
 
+  const [modoAuth, setModoAuth] = useState('login'); // 'login' | 'registro'
+
+  const [regNombre, setRegNombre] = useState('');
+  const [regEmail, setRegEmail] = useState('');
+  const [regPassword, setRegPassword] = useState('');
+  const [regError, setRegError] = useState(null);
+
   const esStaff = perfilUsuario?.tipo === 'staff';
 
   const [statsPanel, setStatsPanel] = useState({
