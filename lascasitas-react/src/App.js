@@ -69,6 +69,13 @@ function App() {
   });
   const [panelTab, setPanelTab] = useState('pedidos'); // 'pedidos' | 'menu' (solo cocinero)
 
+  // Reservas
+  const [reservasUsuario, setReservasUsuario] = useState([]);
+  const [cargandoReservasUsuario, setCargandoReservasUsuario] = useState(false);
+
+  const [reservasHoy, setReservasHoy] = useState([]);
+  const [cargandoReservasHoy, setCargandoReservasHoy] = useState(false);
+
 
 
   function construirDateDesdeInputs(fechaStr, horaStr) {
@@ -632,6 +639,7 @@ function App() {
         setPuntosUsuario(0);
         setHistorialPedidos([]);
         setTienePedidosListos(false);
+        setReservasUsuario([]);
         return;
       }
 
@@ -709,6 +717,13 @@ function App() {
         setTienePedidosListos(false);
       }
 
+      // 4. Reservas futuras del usuario (solo clientes)
+      if (usuario.tipo === 'cliente') {
+        await cargarReservasUsuario(usuario.id);
+      } else {
+        setReservasUsuario([]);
+      }
+
     } catch (e) {
       console.error('Error general cargando perfil de usuario:', e);
       setPerfilUsuario(null);
@@ -719,6 +734,82 @@ function App() {
       setCargandoPerfil(false);
     }
   }, [authUser]);
+
+
+
+
+  const cargarReservasUsuario = async (usuarioId) => {
+    setCargandoReservasUsuario(true);
+    try {
+      const ahoraISO = new Date().toISOString();
+
+      const { data, error } = await supabase
+        .from('reservas')
+        .select('id, inicio, fin, num_personas, estado')
+        .eq('usuario_id', usuarioId)
+        .or('estado.eq.confirmada,estado.eq.pendiente')
+        .gte('inicio', ahoraISO)
+        .order('inicio', { ascending: true });
+
+      if (error) {
+        console.error('Error leyendo reservas del usuario:', error);
+        setReservasUsuario([]);
+        return;
+      }
+
+      setReservasUsuario(data || []);
+    } catch (e) {
+      console.error('Error general leyendo reservas del usuario:', e);
+      setReservasUsuario([]);
+    } finally {
+      setCargandoReservasUsuario(false);
+    }
+  };
+
+
+  const cargarReservasHoy = async () => {
+    setCargandoReservasHoy(true);
+    try {
+      const hoy = new Date();
+      const inicioDia = new Date(
+        hoy.getFullYear(),
+        hoy.getMonth(),
+        hoy.getDate(),
+        0,
+        0,
+        0
+      );
+      const finDia = new Date(
+        hoy.getFullYear(),
+        hoy.getMonth(),
+        hoy.getDate() + 1,
+        0,
+        0,
+        0
+      );
+
+      const { data, error } = await supabase
+        .from('reservas')
+        .select('id, inicio, fin, num_personas, estado, nombre_contacto')
+        .or('estado.eq.confirmada,estado.eq.pendiente')
+        .gte('inicio', inicioDia.toISOString())
+        .lt('inicio', finDia.toISOString())
+        .order('inicio', { ascending: true });
+
+      if (error) {
+        console.error('Error leyendo reservas de hoy:', error);
+        setReservasHoy([]);
+        return;
+      }
+
+      setReservasHoy(data || []);
+    } catch (e) {
+      console.error('Error general leyendo reservas de hoy:', e);
+      setReservasHoy([]);
+    } finally {
+      setCargandoReservasHoy(false);
+    }
+  };
 
 
 
@@ -965,6 +1056,7 @@ function App() {
 
             {authUser && tieneRolPanel && (
               <section>
+                <h2>Panel interno</h2>
                 <div className="panel-card">
                   
 
@@ -1004,6 +1096,7 @@ function App() {
                           cargarPedidosPanel();
                           if (esStaff) {
                             cargarEstadisticasPanel();
+                            cargarReservasHoy();   // 👈 añadimos esto
                           }
                         }}
                       >
@@ -1026,6 +1119,64 @@ function App() {
                           <p>Número de pedidos: {statsPanel.numPedidos}</p>
                           {statsPanel.productoTopNombre && (
                             <p>Producto más pedido: {statsPanel.productoTopNombre}</p>
+                          )}
+                        </div>
+                      )}
+
+                      {esStaff && (
+                        <div className="panel-reservas">
+                          <h3>Reservas de hoy</h3>
+
+                          {cargandoReservasHoy && <p>Cargando reservas...</p>}
+
+                          {!cargandoReservasHoy && reservasHoy.length === 0 && (
+                            <p>No hay reservas para hoy.</p>
+                          )}
+
+                          {!cargandoReservasHoy && reservasHoy.length > 0 && (
+                            <ul className="lista-reservas">
+                              {reservasHoy.map((r) => {
+                                const inicio = new Date(r.inicio);
+                                const fin = new Date(r.fin);
+                                const horaInicio = inicio.toLocaleTimeString([], {
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                });
+                                const horaFin = fin.toLocaleTimeString([], {
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                });
+
+                                return (
+                                  <li key={r.id} className="historial-item">
+                                    <div className="historial-main">
+                                      <div>
+                                        <strong>
+                                          Reserva #{r.id} – {r.num_personas} personas
+                                        </strong>
+                                        <div>
+                                          <small>
+                                            {horaInicio} - {horaFin}
+                                          </small>
+                                          {r.nombre_contacto && (
+                                            <div>
+                                              <small>{r.nombre_contacto}</small>
+                                            </div>
+                                          )}
+                                        </div>
+                                      </div>
+                                      <span className="estado-badge">
+                                        {r.estado === 'confirmada'
+                                          ? 'Confirmada'
+                                          : r.estado === 'pendiente'
+                                          ? 'Pendiente'
+                                          : r.estado}
+                                      </span>
+                                    </div>
+                                  </li>
+                                );
+                              })}
+                            </ul>
                           )}
                         </div>
                       )}
@@ -1543,6 +1694,60 @@ function App() {
                         );
                       })}
                     </ul>
+                  </>
+                )}
+
+                {/* Reservas futuras del usuario (solo clientes) */}
+                {perfilUsuario.tipo === 'cliente' && (
+                  <>
+                    <h3 className="perfil-historial-titulo" style={{ marginTop: '1.5rem' }}>
+                      Reservas futuras
+                    </h3>
+
+                    {cargandoReservasUsuario && <p>Cargando reservas...</p>}
+
+                    {!cargandoReservasUsuario && reservasUsuario.length === 0 && (
+                      <p>No tienes reservas futuras.</p>
+                    )}
+
+                    {!cargandoReservasUsuario && reservasUsuario.length > 0 && (
+                      <ul className="lista-historial">
+                        {reservasUsuario.map((res) => {
+                          const inicio = new Date(res.inicio);
+                          const fechaStr = inicio.toLocaleDateString();
+                          const horaStr = inicio.toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          });
+
+                          let badgeClass = 'estado-badge';
+                          if (res.estado === 'confirmada') badgeClass += ' listo';
+                          if (res.estado === 'pendiente') badgeClass += ' en-preparacion';
+
+                          return (
+                            <li key={res.id} className="historial-item">
+                              <div className="historial-main">
+                                <div>
+                                  <strong>
+                                    {fechaStr} – {horaStr}
+                                  </strong>
+                                  <div>
+                                    <small>{res.num_personas} personas</small>
+                                  </div>
+                                </div>
+                                <span className={badgeClass}>
+                                  {res.estado === 'confirmada'
+                                    ? 'Confirmada'
+                                    : res.estado === 'pendiente'
+                                    ? 'Pendiente'
+                                    : res.estado}
+                                </span>
+                              </div>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    )}
                   </>
                 )}
               </div>
