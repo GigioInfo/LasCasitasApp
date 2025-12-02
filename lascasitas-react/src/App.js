@@ -486,6 +486,46 @@ function App() {
   };
 
 
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    setRegError(null);
+    setAuthError(null);
+
+    const { error } = await supabase.auth.signUp({
+      email: regEmail,
+      password: regPassword,
+      options: {
+        data: {
+          nombre: regNombre,
+          tipo: 'estudiante', 
+        },
+      },
+    });
+
+    if (error) {
+      console.error('Error en registro:', error);
+      setRegError(error.message);
+      return;
+    }
+
+    const { error: loginError } = await supabase.auth.signInWithPassword({
+      email: regEmail,
+      password: regPassword,
+    });
+
+    if (loginError) {
+      console.error('Error iniciando sesión después del registro:', loginError);
+      setRegError(loginError.message);
+      return;
+    }
+
+    setLoginEmail(regEmail);
+    setLoginPassword(regPassword);
+    setModoAuth('login');
+
+  };
+
+
   return (
     <div className="app">
       <header className="header">
